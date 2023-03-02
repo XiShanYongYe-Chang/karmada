@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v3
+      - name: debug echo group
+        run: echo ${{ github.workflow }}-${{ github.actor }}-${{ github.head_ref || github.run_id }}
       - name: install Go
         uses: actions/setup-go@v3
         with:
