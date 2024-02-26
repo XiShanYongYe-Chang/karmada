@@ -78,9 +78,9 @@ type ClusterConditionRequirement struct {
 type ConditionType string
 
 const (
-	// ServiceDomainNameResolution expresses the detection of the domain name resolution
+	// ServiceDomainNameResolutionReady expresses the detection of the domain name resolution
 	// function of Service in the Kubernetes cluster.
-	ServiceDomainNameResolution ConditionType = "ServiceDomainNameResolution"
+	ServiceDomainNameResolutionReady ConditionType = "ServiceDomainNameResolutionReady"
 )
 
 // ClusterConditionOperator is the set of operators that can be used in the cluster condition requirement.
