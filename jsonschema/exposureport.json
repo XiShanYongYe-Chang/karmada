@@ -1,0 +1,27 @@
+{
+  "description": "ExposurePort describes which port will be exposed.",
+  "type": "object",
+  "required": [
+    "port"
+  ],
+  "properties": {
+    "name": {
+      "description": "Name is the name of the port that needs to be exposed within the service. The port name must be the same as that defined in the service.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "port": {
+      "description": "Port specifies the exposed service port.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32",
+      "default": 0
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

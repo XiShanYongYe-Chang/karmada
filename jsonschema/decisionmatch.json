@@ -1,0 +1,38 @@
+{
+  "description": "DecisionMatch represents the decision match detail of activating the remedy system.",
+  "type": "object",
+  "properties": {
+    "clusterConditionMatch": {
+      "description": "ClusterConditionRequirement describes the Cluster condition requirement details.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "conditionType",
+        "operator",
+        "conditionStatus"
+      ],
+      "properties": {
+        "conditionStatus": {
+          "description": "ConditionStatus specifies the ClusterStatue condition status.",
+          "type": "string",
+          "default": ""
+        },
+        "conditionType": {
+          "description": "ConditionType specifies the ClusterStatus condition type.",
+          "type": "string",
+          "default": ""
+        },
+        "operator": {
+          "description": "Operator represents a conditionType's relationship to a conditionStatus. Valid operators are Equal, NotEqual.",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

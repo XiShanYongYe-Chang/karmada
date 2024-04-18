@@ -1,0 +1,568 @@
+{
+  "oneOf": [
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.CronFederatedHPA"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.CronFederatedHPAList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.CronFederatedHPARule"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.CronFederatedHPASpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.CronFederatedHPAStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.ExecutionHistory"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.FailedExecution"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.FederatedHPA"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.FederatedHPAList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.FederatedHPASpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.autoscaling.v1alpha1.SuccessfulExecution"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.APIEnablement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.APIResource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.AllocatableModeling"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.Cluster"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ClusterList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ClusterSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ClusterStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.LocalSecretReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.NodeSummary"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ResourceModel"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ResourceModelRange"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.cluster.v1alpha1.ResourceSummary"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.CustomizationRules"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.CustomizationTarget"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.DependencyInterpretation"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.HealthInterpretation"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.LocalValueRetention"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ReplicaResourceRequirement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ReplicaRevision"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterCustomization"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterCustomizationList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterCustomizationSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterWebhook"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterWebhookConfiguration"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.ResourceInterpreterWebhookConfigurationList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.RuleWithOperations"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.StatusAggregation"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.config.v1alpha1.StatusReflection"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.ClusterSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.ExposurePort"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.ExposureRange"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterIngress"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterIngressList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterIngressStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterService"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterServiceList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.MultiClusterServiceSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.networking.v1alpha1.ServiceLocation"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ApplicationFailoverBehavior"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterAffinity"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterAffinityTerm"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterOverridePolicy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterOverridePolicyList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterPreferences"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterPropagationPolicy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterPropagationPolicyList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ClusterQuotaStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.CommandArgsOverrider"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.DecisionConditions"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FailoverBehavior"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FederatedResourceQuota"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FederatedResourceQuotaList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FederatedResourceQuotaSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FederatedResourceQuotaStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.FieldSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ImageOverrider"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ImagePredicate"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.LabelAnnotationOverrider"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.OverridePolicy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.OverridePolicyList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.OverrideSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.Overriders"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.Placement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.PlaintextOverrider"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.PropagationPolicy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.PropagationPolicyList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.PropagationSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ReplicaSchedulingStrategy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.ResourceSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.RuleWithCluster"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.SpreadConstraint"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.StaticClusterAssignment"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.policy.v1alpha1.StaticClusterWeight"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.ClusterAffinity"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.ClusterConditionRequirement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.DecisionMatch"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.Remedy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.RemedyList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.remedy.v1alpha1.RemedySpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.BackendStoreConfig"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.OpenSearchConfig"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.ResourceRegistry"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.ResourceRegistryList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.ResourceRegistrySpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.ResourceRegistryStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.search.v1alpha1.ResourceSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.Manifest"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.ManifestStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.ResourceIdentifier"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.Work"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.WorkList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.WorkSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.WorkStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha1.WorkloadTemplate"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.AggregatedStatusItem"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.BindingSnapshot"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ClusterResourceBinding"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ClusterResourceBindingList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.GracefulEvictionTask"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.NodeClaim"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ObjectReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ReplicaRequirements"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ResourceBinding"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ResourceBindingList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ResourceBindingSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.ResourceBindingStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/com.github.karmada-io.karmada.pkg.apis.work.v1alpha2.TargetCluster"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.admissionregistration.v1.ServiceReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.admissionregistration.v1.WebhookClientConfig"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ContainerResourceMetricSource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ContainerResourceMetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.CrossVersionObjectReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ExternalMetricSource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ExternalMetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HPAScalingPolicy"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HPAScalingRules"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HorizontalPodAutoscalerBehavior"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HorizontalPodAutoscalerCondition"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.HorizontalPodAutoscalerStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricIdentifier"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricTarget"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.MetricValueStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ObjectMetricSource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ObjectMetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.PodsMetricSource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.PodsMetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ResourceMetricSource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.autoscaling.v2.ResourceMetricStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.LoadBalancerIngress"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.LoadBalancerStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.NodeSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.NodeSelectorRequirement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.NodeSelectorTerm"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.PortStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.ServiceStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.Taint"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.Toleration"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.core.v1.TypedLocalObjectReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.HTTPIngressPath"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.HTTPIngressRuleValue"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressBackend"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressLoadBalancerIngress"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressLoadBalancerStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressPortStatus"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressRule"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressServiceBackend"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressSpec"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.IngressTLS"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.api.networking.v1.ServiceBackendPort"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apiextensions-apiserver.pkg.apis.apiextensions.v1.JSON"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.api.resource.Quantity"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIGroup"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIGroupList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIResource"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Condition"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.DeleteOptions"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.FieldsV1"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.GroupVersionForDiscovery"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.LabelSelector"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.LabelSelectorRequirement"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ManagedFieldsEntry"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.OwnerReference"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Patch"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Preconditions"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.ServerAddressByClientCIDR"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Status"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.StatusCause"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.Time"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.apis.meta.v1.WatchEvent"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.runtime.RawExtension"
+    },
+    {
+      "$ref": "_definitions.json#/definitions/io.k8s.apimachinery.pkg.util.intstr.IntOrString"
+    }
+  ]
+}

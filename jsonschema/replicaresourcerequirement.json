@@ -1,0 +1,19 @@
+{
+  "description": "ReplicaResourceRequirement holds the scripts for getting the desired replicas as well as the resource requirement of each replica.",
+  "type": "object",
+  "required": [
+    "luaScript"
+  ],
+  "properties": {
+    "luaScript": {
+      "description": "LuaScript holds the Lua script that is used to discover the resource's replica as well as resource requirements\n\nThe script should implement a function as follows:\n\n```\n  luaScript: >\n      function GetReplicas(desiredObj)\n          replica = desiredObj.spec.replicas\n          requirement = {}\n          requirement.nodeClaim = {}\n          requirement.nodeClaim.nodeSelector = desiredObj.spec.template.spec.nodeSelector\n          requirement.nodeClaim.tolerations = desiredObj.spec.template.spec.tolerations\n          requirement.resourceRequest = desiredObj.spec.template.spec.containers[1].resources.limits\n          return replica, requirement\n      end\n```\n\nThe content of the LuaScript needs to be a whole function including both declaration and implementation.\n\nThe parameters will be supplied by the system:\n  - desiredObj: the object represents the configuration to be applied\n      to the member cluster.\n\nThe function expects two return values:\n  - replica: the declared replica number\n  - requirement: the resource required by each replica expressed with a\n      ResourceBindingSpec.ReplicaRequirements.\nThe returned values will be set into a ResourceBinding or ClusterResourceBinding.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

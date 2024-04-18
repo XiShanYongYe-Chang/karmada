@@ -1,0 +1,278 @@
+{
+  "description": "ClusterSpec defines the desired state of a member cluster.",
+  "type": "object",
+  "required": [
+    "syncMode"
+  ],
+  "properties": {
+    "apiEndpoint": {
+      "description": "The API endpoint of the member cluster. This can be a hostname, hostname:port, IP or IP:port.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "id": {
+      "description": "ID is the unique identifier for the cluster. It is different from the object uid(.metadata.uid) and typically collected automatically from member cluster during the progress of registration.\n\nThe value is collected in order: 1. If the registering cluster enabled ClusterProperty API and defined the cluster ID by\n  creating a ClusterProperty object with name 'cluster.clusterset.k8s.io', Karmada would\n  take the defined value in the ClusterProperty object.\n  See https://github.com/kubernetes-sigs/about-api for more details about ClusterProperty API.\n2. Take the uid of 'kube-system' namespace on the registering cluster.\n\nPlease don't update this value unless you know what you are doing, because it will/may be used to : - uniquely identify the clusters within the Karmada system. - compose the DNS name of multi-cluster services.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "impersonatorSecretRef": {
+      "description": "LocalSecretReference is a reference to a secret within the enclosing namespace.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "namespace",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name is the name of resource being referenced.",
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "description": "Namespace is the namespace for the resource being referenced.",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "insecureSkipTLSVerification": {
+      "description": "InsecureSkipTLSVerification indicates that the karmada control plane should not confirm the validity of the serving certificate of the cluster it is connecting to. This will make the HTTPS connection between the karmada control plane and the member cluster insecure. Defaults to false.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "provider": {
+      "description": "Provider represents the cloud provider name of the member cluster.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proxyHeader": {
+      "description": "ProxyHeader is the HTTP header required by proxy server. The key in the key-value pair is HTTP header key and value is the associated header payloads. For the header with multiple values, the values should be separated by comma(e.g. 'k1': 'v1,v2,v3').",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "proxyURL": {
+      "description": "ProxyURL is the proxy URL for the cluster. If not empty, the karmada control plane will use this proxy to talk to the cluster. More details please refer to: https://github.com/kubernetes/client-go/issues/351",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "region": {
+      "description": "Region represents the region of the member cluster locate in.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resourceModels": {
+      "description": "ResourceModels is the list of resource modeling in this cluster. Each modeling quota can be customized by the user. Modeling name must be one of the following: cpu, memory, storage, ephemeral-storage. If the user does not define the modeling name and modeling quota, it will be the default model. The default model grade from 0 to 8. When grade = 0 or grade = 1, the default model's cpu quota and memory quota is a fix value. When grade greater than or equal to 2, each default model's cpu quota is [2^(grade-1), 2^grade), 2 <= grade <= 7 Each default model's memory quota is [2^(grade + 2), 2^(grade + 3)), 2 <= grade <= 7 E.g. grade 0 likes this: - grade: 0\n  ranges:\n  - name: \"cpu\"\n    min: 0 C\n    max: 1 C\n  - name: \"memory\"\n    min: 0 GB\n    max: 4 GB\n\n- grade: 1\n  ranges:\n  - name: \"cpu\"\n    min: 1 C\n    max: 2 C\n  - name: \"memory\"\n    min: 4 GB\n    max: 16 GB\n\n- grade: 2\n  ranges:\n  - name: \"cpu\"\n    min: 2 C\n    max: 4 C\n  - name: \"memory\"\n    min: 16 GB\n    max: 32 GB\n\n- grade: 7\n  range:\n  - name: \"cpu\"\n    min: 64 C\n    max: 128 C\n  - name: \"memory\"\n    min: 512 GB\n    max: 1024 GB\n\ngrade 8, the last one likes below. No matter what Max value you pass, the meaning of Max value in this grade is infinite. You can pass any number greater than Min value. - grade: 8\n  range:\n  - name: \"cpu\"\n    min: 128 C\n    max: MAXINT\n  - name: \"memory\"\n    min: 1024 GB\n    max: MAXINT",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "ResourceModel describes the modeling that you want to statistics.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "grade",
+          "ranges"
+        ],
+        "properties": {
+          "grade": {
+            "description": "Grade is the index for the resource modeling.",
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "ranges": {
+            "description": "Ranges describes the resource quota ranges.",
+            "type": "array",
+            "items": {
+              "description": "ResourceModelRange describes the detail of each modeling quota that ranges from min to max. Please pay attention, by default, the value of min can be inclusive, and the value of max cannot be inclusive. E.g. in an interval, min = 2, max =10 is set, which means the interval [2,10). This rule ensure that all intervals have the same meaning. If the last interval is infinite, it is definitely unreachable. Therefore, we define the right interval as the open interval. For a valid interval, the value on the right is greater than the value on the left, in other words, max must be greater than min. It is strongly recommended that the [Min, Max) of all ResourceModelRanges can make a continuous interval.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "name",
+                "min",
+                "max"
+              ],
+              "properties": {
+                "max": {
+                  "oneOf": [
+                    {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  ]
+                },
+                "min": {
+                  "oneOf": [
+                    {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  ]
+                },
+                "name": {
+                  "description": "Name is the name for the resource that you want to categorize.",
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "secretRef": {
+      "description": "LocalSecretReference is a reference to a secret within the enclosing namespace.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "namespace",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name is the name of resource being referenced.",
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "description": "Namespace is the namespace for the resource being referenced.",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "syncMode": {
+      "description": "SyncMode describes how a cluster sync resources from karmada control plane.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "taints": {
+      "description": "Taints attached to the member cluster. Taints on the cluster have the \"effect\" on any resource that does not tolerate the Taint.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "The node this Taint is attached to has the \"effect\" on any pod that does not tolerate the Taint.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "key",
+          "effect"
+        ],
+        "properties": {
+          "effect": {
+            "description": "Required. The effect of the taint on pods that do not tolerate the taint. Valid effects are NoSchedule, PreferNoSchedule and NoExecute.\n\nPossible enum values:\n - `\"NoExecute\"` Evict any already-running pods that do not tolerate the taint. Currently enforced by NodeController.\n - `\"NoSchedule\"` Do not allow new pods to schedule onto the node unless they tolerate the taint, but allow all pods submitted to Kubelet without going through the scheduler to start, and allow all already-running pods to continue running. Enforced by the scheduler.\n - `\"PreferNoSchedule\"` Like TaintEffectNoSchedule, but the scheduler tries not to schedule new pods onto the node, rather than prohibiting new pods from scheduling onto the node entirely. Enforced by the scheduler.",
+            "type": "string",
+            "default": "",
+            "enum": [
+              "NoExecute",
+              "NoSchedule",
+              "PreferNoSchedule"
+            ]
+          },
+          "key": {
+            "description": "Required. The taint key to be applied to a node.",
+            "type": "string",
+            "default": ""
+          },
+          "timeAdded": {
+            "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "value": {
+            "description": "The taint value corresponding to the taint key.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "zone": {
+      "description": "Zone represents the zone of the member cluster locate in. Deprecated: This filed was never been used by Karmada, and it will not be removed from v1alpha1 for backward compatibility, use Zones instead.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "zones": {
+      "description": "Zones represents the failure zones(also called availability zones) of the member cluster. The zones are presented as a slice to support the case that cluster runs across multiple failure zones. Refer https://kubernetes.io/docs/setup/best-practices/multiple-zones/ for more details about running Kubernetes in multiple zones.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

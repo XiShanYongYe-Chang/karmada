@@ -1,0 +1,128 @@
+{
+  "description": "CronFederatedHPASpec is the specification of the CronFederatedHPA.",
+  "type": "object",
+  "required": [
+    "scaleTargetRef",
+    "rules"
+  ],
+  "properties": {
+    "rules": {
+      "description": "Rules contains a collection of schedules that declares when and how the referencing target resource should be scaled.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "CronFederatedHPARule declares a schedule as well as scale actions.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name",
+          "schedule"
+        ],
+        "properties": {
+          "failedHistoryLimit": {
+            "description": "FailedHistoryLimit represents the count of failed execution items for each rule. The value must be a positive integer. It defaults to 3.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "name": {
+            "description": "Name of the rule. Each rule in a CronFederatedHPA must have a unique name.\n\nNote: the name will be used as an identifier to record its execution history. Changing the name will be considered as deleting the old rule and adding a new rule, that means the original execution history will be discarded.",
+            "type": "string",
+            "default": ""
+          },
+          "schedule": {
+            "description": "Schedule is the cron expression that represents a periodical time. The syntax follows https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/#schedule-syntax.",
+            "type": "string",
+            "default": ""
+          },
+          "successfulHistoryLimit": {
+            "description": "SuccessfulHistoryLimit represents the count of successful execution items for each rule. The value must be a positive integer. It defaults to 3.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "suspend": {
+            "description": "Suspend tells the controller to suspend subsequent executions. Defaults to false.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "targetMaxReplicas": {
+            "description": "TargetMaxReplicas is the target MaxReplicas to be set for FederatedHPA. Only needed when referencing resource is FederatedHPA. TargetMinReplicas and TargetMaxReplicas can be specified together or either one can be specified alone. nil means the MaxReplicas(.spec.maxReplicas) of the referencing FederatedHPA will not be updated.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "targetMinReplicas": {
+            "description": "TargetMinReplicas is the target MinReplicas to be set for FederatedHPA. Only needed when referencing resource is FederatedHPA. TargetMinReplicas and TargetMaxReplicas can be specified together or either one can be specified alone. nil means the MinReplicas(.spec.minReplicas) of the referencing FederatedHPA will not be updated.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "targetReplicas": {
+            "description": "TargetReplicas is the target replicas to be scaled for resources referencing by ScaleTargetRef of this CronFederatedHPA. Only needed when referencing resource is not FederatedHPA.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "timeZone": {
+            "description": "TimeZone for the giving schedule. If not specified, this will default to the time zone of the karmada-controller-manager process. Invalid TimeZone will be rejected when applying by karmada-webhook. see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for the all timezones.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scaleTargetRef": {
+      "description": "CrossVersionObjectReference contains enough information to let you identify the referred resource.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "apiVersion is the API version of the referent",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "description": "kind is the kind of the referent; More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+          "type": "string",
+          "default": ""
+        },
+        "name": {
+          "description": "name is the name of the referent; More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,279 @@
+{
+  "description": "ResourceRegistrySpec defines the desired state of ResourceRegistry.",
+  "type": "object",
+  "required": [
+    "targetCluster",
+    "resourceSelectors"
+  ],
+  "properties": {
+    "backendStore": {
+      "description": "BackendStoreConfig specifies backend store.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "openSearch": {
+          "description": "OpenSearchConfig holds the necessary configuration for client to access and config an OpenSearch server.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "addresses"
+          ],
+          "properties": {
+            "addresses": {
+              "description": "Addresses is a list of node endpoint(e.g. 'https://localhost:9200') to use. For the 'node' concept, please refer to: https://opensearch.org/docs/latest/opensearch/index/#clusters-and-nodes",
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": ""
+              }
+            },
+            "secretRef": {
+              "description": "LocalSecretReference is a reference to a secret within the enclosing namespace.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "namespace",
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name is the name of resource being referenced.",
+                  "type": "string",
+                  "default": ""
+                },
+                "namespace": {
+                  "description": "Namespace is the namespace for the resource being referenced.",
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "resourceSelectors": {
+      "description": "ResourceSelectors specifies the resources type that should be cached by cache system.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "ResourceSelector specifies the resources type and its scope.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "apiVersion",
+          "kind"
+        ],
+        "properties": {
+          "apiVersion": {
+            "description": "APIVersion represents the API version of the target resources.",
+            "type": "string",
+            "default": ""
+          },
+          "kind": {
+            "description": "Kind represents the kind of the target resources.",
+            "type": "string",
+            "default": ""
+          },
+          "namespace": {
+            "description": "Namespace of the target resource. Default is empty, which means all namespaces.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "targetCluster": {
+      "description": "ClusterAffinity represents the filter to select clusters.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "clusterNames": {
+          "description": "ClusterNames is the list of clusters to be selected.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": ""
+          }
+        },
+        "exclude": {
+          "description": "ExcludedClusters is the list of clusters to be ignored.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": ""
+          }
+        },
+        "fieldSelector": {
+          "description": "FieldSelector is a field filter.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "matchExpressions": {
+              "description": "A list of field selector requirements.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "key",
+                  "operator"
+                ],
+                "properties": {
+                  "key": {
+                    "description": "The label key that the selector applies to.",
+                    "type": "string",
+                    "default": ""
+                  },
+                  "operator": {
+                    "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                    "type": "string",
+                    "default": "",
+                    "enum": [
+                      "DoesNotExist",
+                      "Exists",
+                      "Gt",
+                      "In",
+                      "Lt",
+                      "NotIn"
+                    ]
+                  },
+                  "values": {
+                    "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": ""
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "labelSelector": {
+          "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "matchExpressions": {
+              "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "required": [
+                  "key",
+                  "operator"
+                ],
+                "properties": {
+                  "key": {
+                    "description": "key is the label key that the selector applies to.",
+                    "type": "string",
+                    "default": ""
+                  },
+                  "operator": {
+                    "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                    "type": "string",
+                    "default": ""
+                  },
+                  "values": {
+                    "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": ""
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "matchLabels": {
+              "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": ""
+              }
+            }
+          },
+          "x-kubernetes-map-type": "atomic",
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

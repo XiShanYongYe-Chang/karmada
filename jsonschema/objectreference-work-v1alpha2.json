@@ -1,0 +1,58 @@
+{
+  "description": "ObjectReference contains enough information to locate the referenced object inside current cluster.",
+  "type": "object",
+  "required": [
+    "apiVersion",
+    "kind",
+    "name"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion represents the API version of the referent.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "kind": {
+      "description": "Kind represents the Kind of the referent.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "name": {
+      "description": "Name represents the name of the referent.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "namespace": {
+      "description": "Namespace represents the namespace for the referent. For non-namespace scoped resources(e.g. 'ClusterRole')\uff0cdo not need specify Namespace, and for namespace scoped resources, Namespace is required. If Namespace is not specified, means the resource is non-namespace scoped.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resourceVersion": {
+      "description": "ResourceVersion represents the internal version of the referenced object, that can be used by clients to determine when object has changed.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uid": {
+      "description": "UID of the referent.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,22 @@
+{
+  "description": "ClusterAffinity represents the filter to select clusters.",
+  "type": "object",
+  "properties": {
+    "clusterNames": {
+      "description": "ClusterNames is the list of clusters to be selected.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

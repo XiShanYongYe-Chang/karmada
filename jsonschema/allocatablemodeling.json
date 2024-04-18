@@ -1,0 +1,30 @@
+{
+  "description": "AllocatableModeling represents the number of nodes in which allocatable resources in a specific resource model grade. E.g. AllocatableModeling{Grade: 2, Count: 10} means 10 nodes belong to resource model in grade 2.",
+  "type": "object",
+  "required": [
+    "grade",
+    "count"
+  ],
+  "properties": {
+    "count": {
+      "description": "Count is the number of nodes that own the resources delineated by this modeling.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32",
+      "default": 0
+    },
+    "grade": {
+      "description": "Grade is the index of ResourceModel.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32",
+      "default": 0
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

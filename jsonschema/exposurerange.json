@@ -1,0 +1,22 @@
+{
+  "description": "ExposureRange describes a list of clusters where the service is exposed. Now supports selecting cluster by name, leave the room for extend more methods such as using label selector.",
+  "type": "object",
+  "properties": {
+    "clusterNames": {
+      "description": "ClusterNames is the list of clusters to be selected.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

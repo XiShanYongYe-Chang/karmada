@@ -1,0 +1,19 @@
+{
+  "description": "ReplicaRevision holds the scripts for revising the desired replicas.",
+  "type": "object",
+  "required": [
+    "luaScript"
+  ],
+  "properties": {
+    "luaScript": {
+      "description": "LuaScript holds the Lua script that is used to revise replicas in the desired specification. The script should implement a function as follows:\n\n```\n  luaScript: >\n      function ReviseReplica(desiredObj, desiredReplica)\n          desiredObj.spec.replicas = desiredReplica\n          return desiredObj\n      end\n```\n\nThe content of the LuaScript needs to be a whole function including both declaration and implementation.\n\nThe parameters will be supplied by the system:\n  - desiredObj: the object represents the configuration to be applied\n      to the member cluster.\n  - desiredReplica: the replica number should be applied with.\n\nThe returned object should be a revised configuration which will be applied to member cluster eventually.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,70 @@
+{
+  "description": "RuleWithOperations is a tuple of Operations and Resources. It is recommended to make sure that all the tuple expansions are valid.",
+  "type": "object",
+  "required": [
+    "operations",
+    "apiGroups",
+    "apiVersions",
+    "kinds"
+  ],
+  "properties": {
+    "apiGroups": {
+      "description": "APIGroups is the API groups the resources belong to. '*' is all groups. If '*' is present, the length of the slice must be one. For example:\n [\"apps\", \"batch\", \"example.io\"] means matches 3 groups.\n [\"*\"] means matches all group\n\nNote: The group could be empty, e.g the 'core' group of kubernetes, in that case use [\"\"].",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "apiVersions": {
+      "description": "APIVersions is the API versions the resources belong to. '*' is all versions. If '*' is present, the length of the slice must be one. For example:\n [\"v1alpha1\", \"v1beta1\"] means matches 2 versions.\n [\"*\"] means matches all versions.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "kinds": {
+      "description": "Kinds is a list of resources this rule applies to. If '*' is present, the length of the slice must be one. For example:\n [\"Deployment\", \"Pod\"] means matches Deployment and Pod.\n [\"*\"] means apply to all resources.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "operations": {
+      "description": "Operations is the operations the hook cares about. If '*' is present, the length of the slice must be one.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

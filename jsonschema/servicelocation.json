@@ -1,0 +1,33 @@
+{
+  "description": "ServiceLocation records the locations of MulticlusterIngress's backend Service resources.",
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "clusters": {
+      "description": "Clusters records the cluster list where the Service is located.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "name": {
+      "description": "name is the referenced service. The service must exist in the same namespace as the MultiClusterService object.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

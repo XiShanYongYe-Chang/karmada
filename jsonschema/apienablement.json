@@ -1,0 +1,50 @@
+{
+  "description": "APIEnablement is a list of API resource, it is used to expose the name of the resources supported in a specific group and version.",
+  "type": "object",
+  "required": [
+    "groupVersion"
+  ],
+  "properties": {
+    "groupVersion": {
+      "description": "GroupVersion is the group and version this APIEnablement is for.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "resources": {
+      "description": "Resources is a list of APIResource.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "APIResource specifies the name and kind names for the resource.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "kind": {
+            "description": "Kind is the kind for the resource (e.g. 'Deployment' is the kind for resource 'deployments')",
+            "type": "string",
+            "default": ""
+          },
+          "name": {
+            "description": "Name is the plural name of the resource.",
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

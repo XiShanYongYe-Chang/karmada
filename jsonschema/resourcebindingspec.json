@@ -1,0 +1,1297 @@
+{
+  "description": "ResourceBindingSpec represents the expectation of ResourceBinding.",
+  "type": "object",
+  "required": [
+    "resource"
+  ],
+  "properties": {
+    "clusters": {
+      "description": "Clusters represents target member clusters where the resource to be deployed.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "TargetCluster represents the identifier of a member cluster.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of target cluster.",
+            "type": "string",
+            "default": ""
+          },
+          "replicas": {
+            "description": "Replicas in target cluster",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "conflictResolution": {
+      "description": "ConflictResolution declares how potential conflict should be handled when a resource that is being propagated already exists in the target cluster.\n\nIt defaults to \"Abort\" which means stop propagating to avoid unexpected overwrites. The \"Overwrite\" might be useful when migrating legacy cluster resources to Karmada, in which case conflict is predictable and can be instructed to Karmada take over the resource by overwriting.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "failover": {
+      "description": "FailoverBehavior indicates failover behaviors in case of an application or cluster failure.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "application": {
+          "description": "ApplicationFailoverBehavior indicates application failover behaviors.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "decisionConditions"
+          ],
+          "properties": {
+            "decisionConditions": {
+              "description": "DecisionConditions represents the decision conditions of performing the failover process.",
+              "type": "object",
+              "properties": {
+                "tolerationSeconds": {
+                  "description": "TolerationSeconds represents the period of time Karmada should wait after reaching the desired state before performing failover process. If not specified, Karmada will immediately perform failover process. Defaults to 300s.",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                }
+              },
+              "additionalProperties": false
+            },
+            "gracePeriodSeconds": {
+              "description": "GracePeriodSeconds is the maximum waiting duration in seconds before application on the migrated cluster should be deleted. Required only when PurgeMode is \"Graciously\" and defaults to 600s. If the application on the new cluster cannot reach a Healthy state, Karmada will delete the application after GracePeriodSeconds is reached. Value must be positive integer.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32"
+            },
+            "purgeMode": {
+              "description": "PurgeMode represents how to deal with the legacy applications on the cluster from which the application is migrated. Valid options are \"Immediately\", \"Graciously\" and \"Never\". Defaults to \"Graciously\".",
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "gracefulEvictionTasks": {
+      "description": "GracefulEvictionTasks holds the eviction tasks that are expected to perform the eviction in a graceful way. The intended workflow is: 1. Once the controller(such as 'taint-manager') decided to evict the resource that\n   is referenced by current ResourceBinding or ClusterResourceBinding from a target\n   cluster, it removes(or scale down the replicas) the target from Clusters(.spec.Clusters)\n   and builds a graceful eviction task.\n2. The scheduler may perform a re-scheduler and probably select a substitute cluster\n   to take over the evicting workload(resource).\n3. The graceful eviction controller takes care of the graceful eviction tasks and\n   performs the final removal after the workload(resource) is available on the substitute\n   cluster or exceed the grace termination period(defaults to 10 minutes).",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "GracefulEvictionTask represents a graceful eviction task.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "fromCluster",
+          "reason",
+          "producer"
+        ],
+        "properties": {
+          "creationTimestamp": {
+            "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "fromCluster": {
+            "description": "FromCluster which cluster the eviction perform from.",
+            "type": "string",
+            "default": ""
+          },
+          "gracePeriodSeconds": {
+            "description": "GracePeriodSeconds is the maximum waiting duration in seconds before the item should be deleted. If the application on the new cluster cannot reach a Healthy state, Karmada will delete the item after GracePeriodSeconds is reached. Value must be positive integer. It can not co-exist with SuppressDeletion.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "message": {
+            "description": "Message is a human-readable message indicating details about the eviction. This may be an empty string.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "producer": {
+            "description": "Producer indicates the controller who triggered the eviction.",
+            "type": "string",
+            "default": ""
+          },
+          "reason": {
+            "description": "Reason contains a programmatic identifier indicating the reason for the eviction. Producers may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.",
+            "type": "string",
+            "default": ""
+          },
+          "replicas": {
+            "description": "Replicas indicates the number of replicas should be evicted. Should be ignored for resource type that doesn't have replica.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "suppressDeletion": {
+            "description": "SuppressDeletion represents the grace period will be persistent until the tools or human intervention stops it. It can not co-exist with GracePeriodSeconds.",
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "placement": {
+      "description": "Placement represents the rule for select clusters.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "clusterAffinities": {
+          "description": "ClusterAffinities represents scheduling restrictions to multiple cluster groups that indicated by ClusterAffinityTerm.\n\nThe scheduler will evaluate these groups one by one in the order they appear in the spec, the group that does not satisfy scheduling restrictions will be ignored which means all clusters in this group will not be selected unless it also belongs to the next group(a cluster could belong to multiple groups).\n\nIf none of the groups satisfy the scheduling restrictions, then scheduling fails, which means no cluster will be selected.\n\nNote:\n  1. ClusterAffinities can not co-exist with ClusterAffinity.\n  2. If both ClusterAffinity and ClusterAffinities are not set, any cluster\n     can be scheduling candidates.\n\nPotential use case 1: The private clusters in the local data center could be the main group, and the managed clusters provided by cluster providers could be the secondary group. So that the Karmada scheduler would prefer to schedule workloads to the main group and the second group will only be considered in case of the main group does not satisfy restrictions(like, lack of resources).\n\nPotential use case 2: For the disaster recovery scenario, the clusters could be organized to primary and backup groups, the workloads would be scheduled to primary clusters firstly, and when primary cluster fails(like data center power off), Karmada scheduler could migrate workloads to the backup clusters.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "description": "ClusterAffinityTerm selects a set of cluster.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "affinityName"
+            ],
+            "properties": {
+              "affinityName": {
+                "description": "AffinityName is the name of the cluster group.",
+                "type": "string",
+                "default": ""
+              },
+              "clusterNames": {
+                "description": "ClusterNames is the list of clusters to be selected.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": ""
+                }
+              },
+              "exclude": {
+                "description": "ExcludedClusters is the list of clusters to be ignored.",
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "default": ""
+                }
+              },
+              "fieldSelector": {
+                "description": "FieldSelector is a field filter.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "matchExpressions": {
+                    "description": "A list of field selector requirements.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "required": [
+                        "key",
+                        "operator"
+                      ],
+                      "properties": {
+                        "key": {
+                          "description": "The label key that the selector applies to.",
+                          "type": "string",
+                          "default": ""
+                        },
+                        "operator": {
+                          "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                          "type": "string",
+                          "default": "",
+                          "enum": [
+                            "DoesNotExist",
+                            "Exists",
+                            "Gt",
+                            "In",
+                            "Lt",
+                            "NotIn"
+                          ]
+                        },
+                        "values": {
+                          "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "default": ""
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "labelSelector": {
+                "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "matchExpressions": {
+                    "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "required": [
+                        "key",
+                        "operator"
+                      ],
+                      "properties": {
+                        "key": {
+                          "description": "key is the label key that the selector applies to.",
+                          "type": "string",
+                          "default": ""
+                        },
+                        "operator": {
+                          "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                          "type": "string",
+                          "default": ""
+                        },
+                        "values": {
+                          "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                          "type": [
+                            "array",
+                            "null"
+                          ],
+                          "items": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "default": ""
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "matchLabels": {
+                    "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "additionalProperties": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "default": ""
+                    }
+                  }
+                },
+                "x-kubernetes-map-type": "atomic",
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "clusterAffinity": {
+          "description": "ClusterAffinity represents the filter to select clusters.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "clusterNames": {
+              "description": "ClusterNames is the list of clusters to be selected.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": ""
+              }
+            },
+            "exclude": {
+              "description": "ExcludedClusters is the list of clusters to be ignored.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": ""
+              }
+            },
+            "fieldSelector": {
+              "description": "FieldSelector is a field filter.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "matchExpressions": {
+                  "description": "A list of field selector requirements.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "key",
+                      "operator"
+                    ],
+                    "properties": {
+                      "key": {
+                        "description": "The label key that the selector applies to.",
+                        "type": "string",
+                        "default": ""
+                      },
+                      "operator": {
+                        "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                        "type": "string",
+                        "default": "",
+                        "enum": [
+                          "DoesNotExist",
+                          "Exists",
+                          "Gt",
+                          "In",
+                          "Lt",
+                          "NotIn"
+                        ]
+                      },
+                      "values": {
+                        "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": ""
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "labelSelector": {
+              "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "matchExpressions": {
+                  "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "key",
+                      "operator"
+                    ],
+                    "properties": {
+                      "key": {
+                        "description": "key is the label key that the selector applies to.",
+                        "type": "string",
+                        "default": ""
+                      },
+                      "operator": {
+                        "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                        "type": "string",
+                        "default": ""
+                      },
+                      "values": {
+                        "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "default": ""
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "matchLabels": {
+                  "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "default": ""
+                  }
+                }
+              },
+              "x-kubernetes-map-type": "atomic",
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "clusterTolerations": {
+          "description": "ClusterTolerations represents the tolerations.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "description": "The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "effect": {
+                "description": "Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.\n\nPossible enum values:\n - `\"NoExecute\"` Evict any already-running pods that do not tolerate the taint. Currently enforced by NodeController.\n - `\"NoSchedule\"` Do not allow new pods to schedule onto the node unless they tolerate the taint, but allow all pods submitted to Kubelet without going through the scheduler to start, and allow all already-running pods to continue running. Enforced by the scheduler.\n - `\"PreferNoSchedule\"` Like TaintEffectNoSchedule, but the scheduler tries not to schedule new pods onto the node, rather than prohibiting new pods from scheduling onto the node entirely. Enforced by the scheduler.",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "NoExecute",
+                  "NoSchedule",
+                  "PreferNoSchedule"
+                ]
+              },
+              "key": {
+                "description": "Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "operator": {
+                "description": "Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.\n\nPossible enum values:\n - `\"Equal\"`\n - `\"Exists\"`",
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "Equal",
+                  "Exists"
+                ]
+              },
+              "tolerationSeconds": {
+                "description": "TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "int64"
+              },
+              "value": {
+                "description": "Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "replicaScheduling": {
+          "description": "ReplicaSchedulingStrategy represents the assignment strategy of replicas.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "replicaDivisionPreference": {
+              "description": "ReplicaDivisionPreference determines how the replicas is divided when ReplicaSchedulingType is \"Divided\". Valid options are Aggregated and Weighted. \"Aggregated\" divides replicas into clusters as few as possible, while respecting clusters' resource availabilities during the division. \"Weighted\" divides replicas by weight according to WeightPreference.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "replicaSchedulingType": {
+              "description": "ReplicaSchedulingType determines how the replicas is scheduled when karmada propagating a resource. Valid options are Duplicated and Divided. \"Duplicated\" duplicates the same replicas to each candidate member cluster from resource. \"Divided\" divides replicas into parts according to number of valid candidate member clusters, and exact replicas for each cluster are determined by ReplicaDivisionPreference.",
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "weightPreference": {
+              "description": "ClusterPreferences describes weight for each cluster or for each group of cluster.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "dynamicWeight": {
+                  "description": "DynamicWeight specifies the factor to generates dynamic weight list. If specified, StaticWeightList will be ignored.",
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "staticWeightList": {
+                  "description": "StaticWeightList defines the static cluster weight.",
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "description": "StaticClusterWeight defines the static cluster weight.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "required": [
+                      "targetCluster",
+                      "weight"
+                    ],
+                    "properties": {
+                      "targetCluster": {
+                        "description": "ClusterAffinity represents the filter to select clusters.",
+                        "type": "object",
+                        "properties": {
+                          "clusterNames": {
+                            "description": "ClusterNames is the list of clusters to be selected.",
+                            "type": [
+                              "array",
+                              "null"
+                            ],
+                            "items": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": ""
+                            }
+                          },
+                          "exclude": {
+                            "description": "ExcludedClusters is the list of clusters to be ignored.",
+                            "type": [
+                              "array",
+                              "null"
+                            ],
+                            "items": {
+                              "type": [
+                                "string",
+                                "null"
+                              ],
+                              "default": ""
+                            }
+                          },
+                          "fieldSelector": {
+                            "description": "FieldSelector is a field filter.",
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "matchExpressions": {
+                                "description": "A list of field selector requirements.",
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "required": [
+                                    "key",
+                                    "operator"
+                                  ],
+                                  "properties": {
+                                    "key": {
+                                      "description": "The label key that the selector applies to.",
+                                      "type": "string",
+                                      "default": ""
+                                    },
+                                    "operator": {
+                                      "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                                      "type": "string",
+                                      "default": "",
+                                      "enum": [
+                                        "DoesNotExist",
+                                        "Exists",
+                                        "Gt",
+                                        "In",
+                                        "Lt",
+                                        "NotIn"
+                                      ]
+                                    },
+                                    "values": {
+                                      "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                                      "type": [
+                                        "array",
+                                        "null"
+                                      ],
+                                      "items": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "default": ""
+                                      }
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "additionalProperties": false
+                          },
+                          "labelSelector": {
+                            "description": "A label selector is a label query over a set of resources. The result of matchLabels and matchExpressions are ANDed. An empty label selector matches all objects. A null label selector matches no objects.",
+                            "type": [
+                              "object",
+                              "null"
+                            ],
+                            "properties": {
+                              "matchExpressions": {
+                                "description": "matchExpressions is a list of label selector requirements. The requirements are ANDed.",
+                                "type": [
+                                  "array",
+                                  "null"
+                                ],
+                                "items": {
+                                  "description": "A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                                  "type": [
+                                    "object",
+                                    "null"
+                                  ],
+                                  "required": [
+                                    "key",
+                                    "operator"
+                                  ],
+                                  "properties": {
+                                    "key": {
+                                      "description": "key is the label key that the selector applies to.",
+                                      "type": "string",
+                                      "default": ""
+                                    },
+                                    "operator": {
+                                      "description": "operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.",
+                                      "type": "string",
+                                      "default": ""
+                                    },
+                                    "values": {
+                                      "description": "values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.",
+                                      "type": [
+                                        "array",
+                                        "null"
+                                      ],
+                                      "items": {
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
+                                        "default": ""
+                                      }
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "matchLabels": {
+                                "description": "matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is \"key\", the operator is \"In\", and the values array contains only \"value\". The requirements are ANDed.",
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
+                                "additionalProperties": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ],
+                                  "default": ""
+                                }
+                              }
+                            },
+                            "x-kubernetes-map-type": "atomic",
+                            "additionalProperties": false
+                          }
+                        },
+                        "additionalProperties": false
+                      },
+                      "weight": {
+                        "description": "Weight expressing the preference to the cluster(s) specified by 'TargetCluster'.",
+                        "type": "integer",
+                        "format": "int64",
+                        "default": 0
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "spreadConstraints": {
+          "description": "SpreadConstraints represents a list of the scheduling constraints.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "description": "SpreadConstraint represents the spread constraints on resources.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "maxGroups": {
+                "description": "MaxGroups restricts the maximum number of cluster groups to be selected.",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "int32"
+              },
+              "minGroups": {
+                "description": "MinGroups restricts the minimum number of cluster groups to be selected. Defaults to 1.",
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "format": "int32"
+              },
+              "spreadByField": {
+                "description": "SpreadByField represents the fields on Karmada cluster API used for dynamically grouping member clusters into different groups. Resources will be spread among different cluster groups. Available fields for spreading are: cluster, region, zone, and provider. SpreadByField should not co-exist with SpreadByLabel. If both SpreadByField and SpreadByLabel are empty, SpreadByField will be set to \"cluster\" by system.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "spreadByLabel": {
+                "description": "SpreadByLabel represents the label key used for grouping member clusters into different groups. Resources will be spread among different cluster groups. SpreadByLabel should not co-exist with SpreadByField.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "propagateDeps": {
+      "description": "PropagateDeps tells if relevant resources should be propagated automatically. It is inherited from PropagationPolicy or ClusterPropagationPolicy. default false.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "replicaRequirements": {
+      "description": "ReplicaRequirements represents the requirements required by each replica.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "namespace": {
+          "description": "Namespace represents the resources namespaces",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "nodeClaim": {
+          "description": "NodeClaim represents the node claim HardNodeAffinity, NodeSelector and Tolerations required by each replica.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "properties": {
+            "hardNodeAffinity": {
+              "description": "A node selector represents the union of the results of one or more label queries over a set of nodes; that is, it represents the OR of the selectors represented by the node selector terms.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "nodeSelectorTerms"
+              ],
+              "properties": {
+                "nodeSelectorTerms": {
+                  "description": "Required. A list of node selector terms. The terms are ORed.",
+                  "type": "array",
+                  "items": {
+                    "description": "A null or empty node selector term matches no objects. The requirements of them are ANDed. The TopologySelectorTerm type implements a subset of the NodeSelectorTerm.",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "matchExpressions": {
+                        "description": "A list of node selector requirements by node's labels.",
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "required": [
+                            "key",
+                            "operator"
+                          ],
+                          "properties": {
+                            "key": {
+                              "description": "The label key that the selector applies to.",
+                              "type": "string",
+                              "default": ""
+                            },
+                            "operator": {
+                              "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                              "type": "string",
+                              "default": "",
+                              "enum": [
+                                "DoesNotExist",
+                                "Exists",
+                                "Gt",
+                                "In",
+                                "Lt",
+                                "NotIn"
+                              ]
+                            },
+                            "values": {
+                              "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "default": ""
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      },
+                      "matchFields": {
+                        "description": "A list of node selector requirements by node's fields.",
+                        "type": [
+                          "array",
+                          "null"
+                        ],
+                        "items": {
+                          "description": "A node selector requirement is a selector that contains values, a key, and an operator that relates the key and values.",
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "required": [
+                            "key",
+                            "operator"
+                          ],
+                          "properties": {
+                            "key": {
+                              "description": "The label key that the selector applies to.",
+                              "type": "string",
+                              "default": ""
+                            },
+                            "operator": {
+                              "description": "Represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists, DoesNotExist. Gt, and Lt.\n\nPossible enum values:\n - `\"DoesNotExist\"`\n - `\"Exists\"`\n - `\"Gt\"`\n - `\"In\"`\n - `\"Lt\"`\n - `\"NotIn\"`",
+                              "type": "string",
+                              "default": "",
+                              "enum": [
+                                "DoesNotExist",
+                                "Exists",
+                                "Gt",
+                                "In",
+                                "Lt",
+                                "NotIn"
+                              ]
+                            },
+                            "values": {
+                              "description": "An array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. If the operator is Gt or Lt, the values array must have a single element, which will be interpreted as an integer. This array is replaced during a strategic merge patch.",
+                              "type": [
+                                "array",
+                                "null"
+                              ],
+                              "items": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
+                                "default": ""
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "x-kubernetes-map-type": "atomic",
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "x-kubernetes-map-type": "atomic",
+              "additionalProperties": false
+            },
+            "nodeSelector": {
+              "description": "NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "additionalProperties": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "default": ""
+              }
+            },
+            "tolerations": {
+              "description": "If specified, the pod's tolerations.",
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "description": "The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.",
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "effect": {
+                    "description": "Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.\n\nPossible enum values:\n - `\"NoExecute\"` Evict any already-running pods that do not tolerate the taint. Currently enforced by NodeController.\n - `\"NoSchedule\"` Do not allow new pods to schedule onto the node unless they tolerate the taint, but allow all pods submitted to Kubelet without going through the scheduler to start, and allow all already-running pods to continue running. Enforced by the scheduler.\n - `\"PreferNoSchedule\"` Like TaintEffectNoSchedule, but the scheduler tries not to schedule new pods onto the node, rather than prohibiting new pods from scheduling onto the node entirely. Enforced by the scheduler.",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "NoExecute",
+                      "NoSchedule",
+                      "PreferNoSchedule"
+                    ]
+                  },
+                  "key": {
+                    "description": "Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "operator": {
+                    "description": "Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.\n\nPossible enum values:\n - `\"Equal\"`\n - `\"Exists\"`",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "Equal",
+                      "Exists"
+                    ]
+                  },
+                  "tolerationSeconds": {
+                    "description": "TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.",
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int64"
+                  },
+                  "value": {
+                    "description": "Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.",
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "priorityClassName": {
+          "description": "PriorityClassName represents the resources priorityClassName",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resourceRequest": {
+          "description": "ResourceRequest represents the resources required by each replica.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "replicas": {
+      "description": "Replicas represents the replica number of the referencing resource.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "requiredBy": {
+      "description": "RequiredBy represents the list of Bindings that depend on the referencing resource.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "BindingSnapshot is a snapshot of a ResourceBinding or ClusterResourceBinding.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "clusters": {
+            "description": "Clusters represents the scheduled result.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "description": "TargetCluster represents the identifier of a member cluster.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "description": "Name of target cluster.",
+                  "type": "string",
+                  "default": ""
+                },
+                "replicas": {
+                  "description": "Replicas in target cluster",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "name": {
+            "description": "Name represents the name of the Binding.",
+            "type": "string",
+            "default": ""
+          },
+          "namespace": {
+            "description": "Namespace represents the namespace of the Binding. It is required for ResourceBinding. If Namespace is not specified, means the referencing is ClusterResourceBinding.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "resource": {
+      "description": "ObjectReference contains enough information to locate the referenced object inside current cluster.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "apiVersion",
+        "kind",
+        "name"
+      ],
+      "properties": {
+        "apiVersion": {
+          "description": "APIVersion represents the API version of the referent.",
+          "type": "string",
+          "default": ""
+        },
+        "kind": {
+          "description": "Kind represents the Kind of the referent.",
+          "type": "string",
+          "default": ""
+        },
+        "name": {
+          "description": "Name represents the name of the referent.",
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "description": "Namespace represents the namespace for the referent. For non-namespace scoped resources(e.g. 'ClusterRole')\uff0cdo not need specify Namespace, and for namespace scoped resources, Namespace is required. If Namespace is not specified, means the resource is non-namespace scoped.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resourceVersion": {
+          "description": "ResourceVersion represents the internal version of the referenced object, that can be used by clients to determine when object has changed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uid": {
+          "description": "UID of the referent.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "schedulerName": {
+      "description": "SchedulerName represents which scheduler to proceed the scheduling. It inherits directly from the associated PropagationPolicy(or ClusterPropagationPolicy).",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

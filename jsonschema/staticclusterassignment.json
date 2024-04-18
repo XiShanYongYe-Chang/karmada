@@ -1,0 +1,43 @@
+{
+  "description": "StaticClusterAssignment represents the set of desired hard limits for a specific cluster.",
+  "type": "object",
+  "required": [
+    "clusterName",
+    "hard"
+  ],
+  "properties": {
+    "clusterName": {
+      "description": "ClusterName is the name of the cluster the limits enforce to.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "hard": {
+      "description": "Hard is the set of desired hard limits for each named resource.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

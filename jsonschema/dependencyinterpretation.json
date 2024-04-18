@@ -1,0 +1,19 @@
+{
+  "description": "DependencyInterpretation holds the rules for interpreting the dependent resources of a specific resources.",
+  "type": "object",
+  "required": [
+    "luaScript"
+  ],
+  "properties": {
+    "luaScript": {
+      "description": "LuaScript holds the Lua script that is used to interpret the dependencies of a specific resource. The script should implement a function as follows:\n\n```\n  luaScript: >\n      function GetDependencies(desiredObj)\n          dependencies = {}\n          if desiredObj.spec.serviceAccountName ~= nil and desiredObj.spec.serviceAccountName ~= \"default\" then\n              dependency = {}\n              dependency.apiVersion = \"v1\"\n              dependency.kind = \"ServiceAccount\"\n              dependency.name = desiredObj.spec.serviceAccountName\n              dependency.namespace = desiredObj.namespace\n              dependencies[1] = {}\n              dependencies[1] = dependency\n          end\n          return dependencies\n      end\n```\n\nThe content of the LuaScript needs to be a whole function including both declaration and implementation.\n\nThe parameters will be supplied by the system:\n  - desiredObj: the object represents the configuration to be applied\n      to the member cluster.\n\nThe returned value should be expressed by a slice of DependentObjectReference.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

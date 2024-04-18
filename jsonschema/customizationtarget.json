@@ -1,0 +1,28 @@
+{
+  "description": "CustomizationTarget represents the resource type that the customization applies to.",
+  "type": "object",
+  "required": [
+    "apiVersion",
+    "kind"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion represents the API version of the target resource.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "kind": {
+      "description": "Kind represents the Kind of target resources.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

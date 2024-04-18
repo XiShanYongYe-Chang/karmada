@@ -1,0 +1,37 @@
+{
+  "description": "ClusterConditionRequirement describes the Cluster condition requirement details.",
+  "type": "object",
+  "required": [
+    "conditionType",
+    "operator",
+    "conditionStatus"
+  ],
+  "properties": {
+    "conditionStatus": {
+      "description": "ConditionStatus specifies the ClusterStatue condition status.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "conditionType": {
+      "description": "ConditionType specifies the ClusterStatus condition type.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "operator": {
+      "description": "Operator represents a conditionType's relationship to a conditionStatus. Valid operators are Equal, NotEqual.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,53 @@
+{
+  "description": "ImageOverrider represents the rules dedicated to handling image overrides.",
+  "type": "object",
+  "required": [
+    "component",
+    "operator"
+  ],
+  "properties": {
+    "component": {
+      "description": "Component is part of image name. Basically we presume an image can be made of '[registry/]repository[:tag]'. The registry could be: - registry.k8s.io - fictional.registry.example:10443 The repository could be: - kube-apiserver - fictional/nginx The tag cloud be: - latest - v1.19.1 - @sha256:dbcc1c35ac38df41fd2f5e4130b32ffdb93ebae8b3dbe638c23575912276fc9c",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "operator": {
+      "description": "Operator represents the operator which will apply on the image.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "predicate": {
+      "description": "ImagePredicate describes images filter.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "path"
+      ],
+      "properties": {
+        "path": {
+          "description": "Path indicates the path of target field",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    },
+    "value": {
+      "description": "Value to be applied to image. Must not be empty when operator is 'add' or 'replace'. Defaults to empty and ignored when operator is 'remove'.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

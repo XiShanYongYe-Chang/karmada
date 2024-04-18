@@ -1,0 +1,93 @@
+{
+  "description": "RemedySpec represents the desired behavior of Remedy.",
+  "type": "object",
+  "properties": {
+    "actions": {
+      "description": "Actions specifies the actions that remedy system needs to perform. If empty, no action will be performed.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "clusterAffinity": {
+      "description": "ClusterAffinity represents the filter to select clusters.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "clusterNames": {
+          "description": "ClusterNames is the list of clusters to be selected.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": ""
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "decisionMatches": {
+      "description": "DecisionMatches indicates the decision matches of triggering the remedy system to perform the actions. As long as any one DecisionMatch matches, the Actions will be preformed. If empty, the Actions will be performed immediately.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "DecisionMatch represents the decision match detail of activating the remedy system.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "clusterConditionMatch": {
+            "description": "ClusterConditionRequirement describes the Cluster condition requirement details.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "conditionType",
+              "operator",
+              "conditionStatus"
+            ],
+            "properties": {
+              "conditionStatus": {
+                "description": "ConditionStatus specifies the ClusterStatue condition status.",
+                "type": "string",
+                "default": ""
+              },
+              "conditionType": {
+                "description": "ConditionType specifies the ClusterStatus condition type.",
+                "type": "string",
+                "default": ""
+              },
+              "operator": {
+                "description": "Operator represents a conditionType's relationship to a conditionStatus. Valid operators are Equal, NotEqual.",
+                "type": "string",
+                "default": ""
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

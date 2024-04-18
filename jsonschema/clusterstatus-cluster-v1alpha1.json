@@ -1,0 +1,280 @@
+{
+  "description": "ClusterStatus contains information about the current status of a cluster updated periodically by cluster controller.",
+  "type": "object",
+  "properties": {
+    "apiEnablements": {
+      "description": "APIEnablements represents the list of APIs installed in the member cluster.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "APIEnablement is a list of API resource, it is used to expose the name of the resources supported in a specific group and version.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "groupVersion"
+        ],
+        "properties": {
+          "groupVersion": {
+            "description": "GroupVersion is the group and version this APIEnablement is for.",
+            "type": "string",
+            "default": ""
+          },
+          "resources": {
+            "description": "Resources is a list of APIResource.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "description": "APIResource specifies the name and kind names for the resource.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "name",
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "description": "Kind is the kind for the resource (e.g. 'Deployment' is the kind for resource 'deployments')",
+                  "type": "string",
+                  "default": ""
+                },
+                "name": {
+                  "description": "Name is the plural name of the resource.",
+                  "type": "string",
+                  "default": ""
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "conditions": {
+      "description": "Conditions is an array of current cluster conditions.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "Condition contains details for one aspect of the current state of this API Resource.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "type",
+          "status",
+          "lastTransitionTime",
+          "reason",
+          "message"
+        ],
+        "properties": {
+          "lastTransitionTime": {
+            "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "description": "message is a human readable message indicating details about the transition. This may be an empty string.",
+            "type": "string",
+            "default": ""
+          },
+          "observedGeneration": {
+            "description": "observedGeneration represents the .metadata.generation that the condition was set based upon. For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date with respect to the current state of the instance.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "reason": {
+            "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition. Producers of specific condition types may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.",
+            "type": "string",
+            "default": ""
+          },
+          "status": {
+            "description": "status of the condition, one of True, False, Unknown.",
+            "type": "string",
+            "default": ""
+          },
+          "type": {
+            "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "kubernetesVersion": {
+      "description": "KubernetesVersion represents version of the member cluster.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "nodeSummary": {
+      "description": "NodeSummary represents the summary of nodes status in a specific cluster.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "readyNum": {
+          "description": "ReadyNum is the number of ready nodes in the cluster.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "totalNum": {
+          "description": "TotalNum is the total number of nodes in the cluster.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false
+    },
+    "remedyActions": {
+      "description": "RemedyActions represents the remedy actions that needs to be performed on the cluster.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "resourceSummary": {
+      "description": "ResourceSummary represents the summary of resources in the member cluster.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "allocatable": {
+          "description": "Allocatable represents the resources of a cluster that are available for scheduling. Total amount of allocatable resources on all nodes.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            ]
+          }
+        },
+        "allocatableModelings": {
+          "description": "AllocatableModelings represents the statistical resource modeling.",
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "description": "AllocatableModeling represents the number of nodes in which allocatable resources in a specific resource model grade. E.g. AllocatableModeling{Grade: 2, Count: 10} means 10 nodes belong to resource model in grade 2.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "grade",
+              "count"
+            ],
+            "properties": {
+              "count": {
+                "description": "Count is the number of nodes that own the resources delineated by this modeling.",
+                "type": "integer",
+                "format": "int32",
+                "default": 0
+              },
+              "grade": {
+                "description": "Grade is the index of ResourceModel.",
+                "type": "integer",
+                "format": "int32",
+                "default": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "allocated": {
+          "description": "Allocated represents the resources of a cluster that have been scheduled. Total amount of required resources of all Pods that have been scheduled to nodes.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            ]
+          }
+        },
+        "allocating": {
+          "description": "Allocating represents the resources of a cluster that are pending for scheduling. Total amount of required resources of all Pods that are waiting for scheduling.",
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

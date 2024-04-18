@@ -1,0 +1,153 @@
+{
+  "description": "WorkStatus defines the observed state of Work.",
+  "type": "object",
+  "properties": {
+    "conditions": {
+      "description": "Conditions contain the different condition statuses for this work. Valid condition types are: 1. Applied represents workload in Work is applied successfully on a managed cluster. 2. Progressing represents workload in Work is being applied on a managed cluster. 3. Available represents workload in Work exists on the managed cluster. 4. Degraded represents the current state of workload does not match the desired state for a certain period.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "Condition contains details for one aspect of the current state of this API Resource.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "type",
+          "status",
+          "lastTransitionTime",
+          "reason",
+          "message"
+        ],
+        "properties": {
+          "lastTransitionTime": {
+            "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+            "type": "string",
+            "format": "date-time"
+          },
+          "message": {
+            "description": "message is a human readable message indicating details about the transition. This may be an empty string.",
+            "type": "string",
+            "default": ""
+          },
+          "observedGeneration": {
+            "description": "observedGeneration represents the .metadata.generation that the condition was set based upon. For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date with respect to the current state of the instance.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "reason": {
+            "description": "reason contains a programmatic identifier indicating the reason for the condition's last transition. Producers of specific condition types may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.",
+            "type": "string",
+            "default": ""
+          },
+          "status": {
+            "description": "status of the condition, one of True, False, Unknown.",
+            "type": "string",
+            "default": ""
+          },
+          "type": {
+            "description": "type of condition in CamelCase or in foo.example.com/CamelCase.",
+            "type": "string",
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "manifestStatuses": {
+      "description": "ManifestStatuses contains running status of manifests in spec.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "ManifestStatus contains running status of a specific manifest in spec.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "identifier"
+        ],
+        "properties": {
+          "health": {
+            "description": "Health represents the healthy state of the current resource. There maybe different rules for different resources to achieve health status.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "identifier": {
+            "description": "ResourceIdentifier provides the identifiers needed to interact with any arbitrary object.",
+            "type": "object",
+            "required": [
+              "ordinal",
+              "version",
+              "kind",
+              "resource",
+              "name"
+            ],
+            "properties": {
+              "group": {
+                "description": "Group is the group of the resource.",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "kind": {
+                "description": "Kind is the kind of the resource.",
+                "type": "string",
+                "default": ""
+              },
+              "name": {
+                "description": "Name is the name of the resource",
+                "type": "string",
+                "default": ""
+              },
+              "namespace": {
+                "description": "Namespace is the namespace of the resource, the resource is cluster scoped if the value is empty",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "ordinal": {
+                "description": "Ordinal represents an index in manifests list, so the condition can still be linked to a manifest even though manifest cannot be parsed successfully.",
+                "type": "integer",
+                "format": "int32",
+                "default": 0
+              },
+              "resource": {
+                "description": "Resource is the resource type of the resource",
+                "type": "string",
+                "default": ""
+              },
+              "version": {
+                "description": "Version is the version of the resource.",
+                "type": "string",
+                "default": ""
+              }
+            },
+            "additionalProperties": false
+          },
+          "status": {
+            "description": "RawExtension is used to hold extensions in external versions.\n\nTo use this, make a field which has RawExtension as its type in your external, versioned struct, and Object in your internal struct. You also need to register your various plugin types.\n\n// Internal package:\n\n\ttype MyAPIObject struct {\n\t\truntime.TypeMeta `json:\",inline\"`\n\t\tMyPlugin runtime.Object `json:\"myPlugin\"`\n\t}\n\n\ttype PluginA struct {\n\t\tAOption string `json:\"aOption\"`\n\t}\n\n// External package:\n\n\ttype MyAPIObject struct {\n\t\truntime.TypeMeta `json:\",inline\"`\n\t\tMyPlugin runtime.RawExtension `json:\"myPlugin\"`\n\t}\n\n\ttype PluginA struct {\n\t\tAOption string `json:\"aOption\"`\n\t}\n\n// On the wire, the JSON will look something like this:\n\n\t{\n\t\t\"kind\":\"MyAPIObject\",\n\t\t\"apiVersion\":\"v1\",\n\t\t\"myPlugin\": {\n\t\t\t\"kind\":\"PluginA\",\n\t\t\t\"aOption\":\"foo\",\n\t\t},\n\t}\n\nSo what happens? Decode first uses json or yaml to unmarshal the serialized data into your external MyAPIObject. That causes the raw JSON to be stored, but not unpacked. The next step is to copy (using pkg/conversion) into the internal struct. The runtime package's DefaultScheme has conversion functions installed which will unpack the JSON stored in RawExtension, turning it into the correct object type, and storing it in the Object. (TODO: In the case where the object is of an unknown type, a runtime.Unknown object will be created and stored.)",
+            "type": [
+              "object",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

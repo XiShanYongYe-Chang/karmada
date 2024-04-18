@@ -1,0 +1,266 @@
+{
+  "description": "Overriders offers various alternatives to represent the override rules.\n\nIf more than one alternative exists, they will be applied with following order: - ImageOverrider - CommandOverrider - ArgsOverrider - LabelsOverrider - AnnotationsOverrider - Plaintext",
+  "type": "object",
+  "properties": {
+    "annotationsOverrider": {
+      "description": "AnnotationsOverrider represents the rules dedicated to handling workload annotations",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "LabelAnnotationOverrider represents the rules dedicated to handling workload labels/annotations",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "operator"
+        ],
+        "properties": {
+          "operator": {
+            "description": "Operator represents the operator which will apply on the workload.",
+            "type": "string",
+            "default": ""
+          },
+          "value": {
+            "description": "Value to be applied to annotations/labels of workload. Items in Value which will be appended after annotations/labels when Operator is 'add'. Items in Value which match in annotations/labels will be deleted when Operator is 'remove'. Items in Value which match in annotations/labels will be replaced when Operator is 'replace'.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": ""
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "argsOverrider": {
+      "description": "ArgsOverrider represents the rules dedicated to handling container args",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "CommandArgsOverrider represents the rules dedicated to handling command/args overrides.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "containerName",
+          "operator"
+        ],
+        "properties": {
+          "containerName": {
+            "description": "The name of container",
+            "type": "string",
+            "default": ""
+          },
+          "operator": {
+            "description": "Operator represents the operator which will apply on the command/args.",
+            "type": "string",
+            "default": ""
+          },
+          "value": {
+            "description": "Value to be applied to command/args. Items in Value which will be appended after command/args when Operator is 'add'. Items in Value which match in command/args will be deleted when Operator is 'remove'. If Value is empty, then the command/args will remain the same.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": ""
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "commandOverrider": {
+      "description": "CommandOverrider represents the rules dedicated to handling container command",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "CommandArgsOverrider represents the rules dedicated to handling command/args overrides.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "containerName",
+          "operator"
+        ],
+        "properties": {
+          "containerName": {
+            "description": "The name of container",
+            "type": "string",
+            "default": ""
+          },
+          "operator": {
+            "description": "Operator represents the operator which will apply on the command/args.",
+            "type": "string",
+            "default": ""
+          },
+          "value": {
+            "description": "Value to be applied to command/args. Items in Value which will be appended after command/args when Operator is 'add'. Items in Value which match in command/args will be deleted when Operator is 'remove'. If Value is empty, then the command/args will remain the same.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": ""
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "imageOverrider": {
+      "description": "ImageOverrider represents the rules dedicated to handling image overrides.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "ImageOverrider represents the rules dedicated to handling image overrides.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "component",
+          "operator"
+        ],
+        "properties": {
+          "component": {
+            "description": "Component is part of image name. Basically we presume an image can be made of '[registry/]repository[:tag]'. The registry could be: - registry.k8s.io - fictional.registry.example:10443 The repository could be: - kube-apiserver - fictional/nginx The tag cloud be: - latest - v1.19.1 - @sha256:dbcc1c35ac38df41fd2f5e4130b32ffdb93ebae8b3dbe638c23575912276fc9c",
+            "type": "string",
+            "default": ""
+          },
+          "operator": {
+            "description": "Operator represents the operator which will apply on the image.",
+            "type": "string",
+            "default": ""
+          },
+          "predicate": {
+            "description": "ImagePredicate describes images filter.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "required": [
+              "path"
+            ],
+            "properties": {
+              "path": {
+                "description": "Path indicates the path of target field",
+                "type": "string",
+                "default": ""
+              }
+            },
+            "additionalProperties": false
+          },
+          "value": {
+            "description": "Value to be applied to image. Must not be empty when operator is 'add' or 'replace'. Defaults to empty and ignored when operator is 'remove'.",
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "labelsOverrider": {
+      "description": "LabelsOverrider represents the rules dedicated to handling workload labels",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "LabelAnnotationOverrider represents the rules dedicated to handling workload labels/annotations",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "operator"
+        ],
+        "properties": {
+          "operator": {
+            "description": "Operator represents the operator which will apply on the workload.",
+            "type": "string",
+            "default": ""
+          },
+          "value": {
+            "description": "Value to be applied to annotations/labels of workload. Items in Value which will be appended after annotations/labels when Operator is 'add'. Items in Value which match in annotations/labels will be deleted when Operator is 'remove'. Items in Value which match in annotations/labels will be replaced when Operator is 'replace'.",
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "default": ""
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "plaintext": {
+      "description": "Plaintext represents override rules defined with plaintext overriders.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "PlaintextOverrider is a simple overrider that overrides target fields according to path, operator and value.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "path",
+          "operator"
+        ],
+        "properties": {
+          "operator": {
+            "description": "Operator indicates the operation on target field. Available operators are: add, replace and remove.",
+            "type": "string",
+            "default": ""
+          },
+          "path": {
+            "description": "Path indicates the path of target field",
+            "type": "string",
+            "default": ""
+          },
+          "value": {
+            "description": "JSON represents any valid JSON value. These types are supported: bool, int64, float64, string, []interface{}, map[string]interface{} and nil."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

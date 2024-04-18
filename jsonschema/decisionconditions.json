@@ -1,0 +1,16 @@
+{
+  "description": "DecisionConditions represents the decision conditions of performing the failover process.",
+  "type": "object",
+  "properties": {
+    "tolerationSeconds": {
+      "description": "TolerationSeconds represents the period of time Karmada should wait after reaching the desired state before performing failover process. If not specified, Karmada will immediately perform failover process. Defaults to 300s.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

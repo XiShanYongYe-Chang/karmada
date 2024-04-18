@@ -1,0 +1,133 @@
+{
+  "description": "CronFederatedHPAStatus represents the current status of a CronFederatedHPA.",
+  "type": "object",
+  "properties": {
+    "executionHistories": {
+      "description": "ExecutionHistories record the execution histories of CronFederatedHPARule.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "ExecutionHistory records the execution history of specific CronFederatedHPARule.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "ruleName"
+        ],
+        "properties": {
+          "failedExecutions": {
+            "description": "FailedExecutions records failed executions.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "description": "FailedExecution records a failed execution.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "scheduleTime",
+                "executionTime",
+                "message"
+              ],
+              "properties": {
+                "executionTime": {
+                  "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "message": {
+                  "description": "Message is the human-readable message indicating details about the failure.",
+                  "type": "string",
+                  "default": ""
+                },
+                "scheduleTime": {
+                  "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "nextExecutionTime": {
+            "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "ruleName": {
+            "description": "RuleName is the name of the CronFederatedHPARule.",
+            "type": "string",
+            "default": ""
+          },
+          "successfulExecutions": {
+            "description": "SuccessfulExecutions records successful executions.",
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "description": "SuccessfulExecution records a successful execution.",
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "scheduleTime",
+                "executionTime"
+              ],
+              "properties": {
+                "appliedMaxReplicas": {
+                  "description": "AppliedMaxReplicas is the MaxReplicas have been applied. It is required if .spec.rules[*].targetMaxReplicas is not empty.",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                },
+                "appliedMinReplicas": {
+                  "description": "AppliedMinReplicas is the MinReplicas have been applied. It is required if .spec.rules[*].targetMinReplicas is not empty.",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                },
+                "appliedReplicas": {
+                  "description": "AppliedReplicas is the replicas have been applied. It is required if .spec.rules[*].targetReplicas is not empty.",
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "int32"
+                },
+                "executionTime": {
+                  "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "scheduleTime": {
+                  "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

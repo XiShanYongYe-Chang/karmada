@@ -1,0 +1,38 @@
+{
+  "description": "SpreadConstraint represents the spread constraints on resources.",
+  "type": "object",
+  "properties": {
+    "maxGroups": {
+      "description": "MaxGroups restricts the maximum number of cluster groups to be selected.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "minGroups": {
+      "description": "MinGroups restricts the minimum number of cluster groups to be selected. Defaults to 1.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "spreadByField": {
+      "description": "SpreadByField represents the fields on Karmada cluster API used for dynamically grouping member clusters into different groups. Resources will be spread among different cluster groups. Available fields for spreading are: cluster, region, zone, and provider. SpreadByField should not co-exist with SpreadByLabel. If both SpreadByField and SpreadByLabel are empty, SpreadByField will be set to \"cluster\" by system.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "spreadByLabel": {
+      "description": "SpreadByLabel represents the label key used for grouping member clusters into different groups. Resources will be spread among different cluster groups. SpreadByLabel should not co-exist with SpreadByField.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

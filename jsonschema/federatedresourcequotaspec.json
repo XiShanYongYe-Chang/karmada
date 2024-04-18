@@ -1,0 +1,80 @@
+{
+  "description": "FederatedResourceQuotaSpec defines the desired hard limits to enforce for Quota.",
+  "type": "object",
+  "required": [
+    "overall"
+  ],
+  "properties": {
+    "overall": {
+      "description": "Overall is the set of desired hard limits for each named resource.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        ]
+      }
+    },
+    "staticAssignments": {
+      "description": "StaticAssignments represents the subset of desired hard limits for each cluster. Note: for clusters not present in this list, Karmada will set an empty ResourceQuota to them, which means these clusters will have no quotas in the referencing namespace.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "StaticClusterAssignment represents the set of desired hard limits for a specific cluster.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "clusterName",
+          "hard"
+        ],
+        "properties": {
+          "clusterName": {
+            "description": "ClusterName is the name of the cluster the limits enforce to.",
+            "type": "string",
+            "default": ""
+          },
+          "hard": {
+            "description": "Hard is the set of desired hard limits for each named resource.",
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,27 @@
+{
+  "description": "TargetCluster represents the identifier of a member cluster.",
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "name": {
+      "description": "Name of target cluster.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "replicas": {
+      "description": "Replicas in target cluster",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

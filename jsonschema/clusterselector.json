@@ -1,0 +1,15 @@
+{
+  "description": "ClusterSelector specifies the cluster to be selected.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "description": "Name is the name of the cluster to be selected.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

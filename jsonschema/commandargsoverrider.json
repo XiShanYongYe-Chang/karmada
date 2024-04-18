@@ -1,0 +1,42 @@
+{
+  "description": "CommandArgsOverrider represents the rules dedicated to handling command/args overrides.",
+  "type": "object",
+  "required": [
+    "containerName",
+    "operator"
+  ],
+  "properties": {
+    "containerName": {
+      "description": "The name of container",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "operator": {
+      "description": "Operator represents the operator which will apply on the command/args.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "value": {
+      "description": "Value to be applied to command/args. Items in Value which will be appended after command/args when Operator is 'add'. Items in Value which match in command/args will be deleted when Operator is 'remove'. If Value is empty, then the command/args will remain the same.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

@@ -1,0 +1,24 @@
+{
+  "description": "NodeSummary represents the summary of nodes status in a specific cluster.",
+  "type": "object",
+  "properties": {
+    "readyNum": {
+      "description": "ReadyNum is the number of ready nodes in the cluster.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "totalNum": {
+      "description": "TotalNum is the total number of nodes in the cluster.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

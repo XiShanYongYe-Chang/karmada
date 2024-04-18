@@ -1,0 +1,22 @@
+{
+  "description": "WorkloadTemplate represents the manifest workload to be deployed on managed cluster.",
+  "type": "object",
+  "properties": {
+    "manifests": {
+      "description": "Manifests represents a list of Kubernetes resources to be deployed on the managed cluster.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "Manifest represents a resource to be deployed on managed cluster.",
+        "type": [
+          "object",
+          "null"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

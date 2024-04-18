@@ -1,0 +1,52 @@
+{
+  "description": "SuccessfulExecution records a successful execution.",
+  "type": "object",
+  "required": [
+    "scheduleTime",
+    "executionTime"
+  ],
+  "properties": {
+    "appliedMaxReplicas": {
+      "description": "AppliedMaxReplicas is the MaxReplicas have been applied. It is required if .spec.rules[*].targetMaxReplicas is not empty.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "appliedMinReplicas": {
+      "description": "AppliedMinReplicas is the MinReplicas have been applied. It is required if .spec.rules[*].targetMinReplicas is not empty.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "appliedReplicas": {
+      "description": "AppliedReplicas is the replicas have been applied. It is required if .spec.rules[*].targetReplicas is not empty.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "executionTime": {
+      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "scheduleTime": {
+      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

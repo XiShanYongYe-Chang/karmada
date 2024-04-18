@@ -1,0 +1,49 @@
+{
+  "description": "OpenSearchConfig holds the necessary configuration for client to access and config an OpenSearch server.",
+  "type": "object",
+  "required": [
+    "addresses"
+  ],
+  "properties": {
+    "addresses": {
+      "description": "Addresses is a list of node endpoint(e.g. 'https://localhost:9200') to use. For the 'node' concept, please refer to: https://opensearch.org/docs/latest/opensearch/index/#clusters-and-nodes",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "default": ""
+      }
+    },
+    "secretRef": {
+      "description": "LocalSecretReference is a reference to a secret within the enclosing namespace.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": [
+        "namespace",
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "description": "Name is the name of resource being referenced.",
+          "type": "string",
+          "default": ""
+        },
+        "namespace": {
+          "description": "Namespace is the namespace for the resource being referenced.",
+          "type": "string",
+          "default": ""
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

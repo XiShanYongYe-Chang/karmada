@@ -1,0 +1,31 @@
+{
+  "description": "PlaintextOverrider is a simple overrider that overrides target fields according to path, operator and value.",
+  "type": "object",
+  "required": [
+    "path",
+    "operator"
+  ],
+  "properties": {
+    "operator": {
+      "description": "Operator indicates the operation on target field. Available operators are: add, replace and remove.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "path": {
+      "description": "Path indicates the path of target field",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "value": {
+      "description": "JSON represents any valid JSON value. These types are supported: bool, int64, float64, string, []interface{}, map[string]interface{} and nil."
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

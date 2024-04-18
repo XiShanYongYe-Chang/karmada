@@ -1,0 +1,59 @@
+{
+  "description": "BindingSnapshot is a snapshot of a ResourceBinding or ClusterResourceBinding.",
+  "type": "object",
+  "required": [
+    "name"
+  ],
+  "properties": {
+    "clusters": {
+      "description": "Clusters represents the scheduled result.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "TargetCluster represents the identifier of a member cluster.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "description": "Name of target cluster.",
+            "type": "string",
+            "default": ""
+          },
+          "replicas": {
+            "description": "Replicas in target cluster",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "name": {
+      "description": "Name represents the name of the Binding.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "namespace": {
+      "description": "Namespace represents the namespace of the Binding. It is required for ResourceBinding. If Namespace is not specified, means the referencing is ClusterResourceBinding.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

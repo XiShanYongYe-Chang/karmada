@@ -1,0 +1,19 @@
+{
+  "description": "HealthInterpretation holds the rules for interpreting the health state of a specific resource.",
+  "type": "object",
+  "required": [
+    "luaScript"
+  ],
+  "properties": {
+    "luaScript": {
+      "description": "LuaScript holds the Lua script that is used to assess the health state of a specific resource. The script should implement a function as follows:\n\n```\n  luaScript: >\n      function InterpretHealth(observedObj)\n          if observedObj.status.readyReplicas == observedObj.spec.replicas then\n              return true\n          end\n      end\n```\n\nThe content of the LuaScript needs to be a whole function including both declaration and implementation.\n\nThe parameters will be supplied by the system:\n  - observedObj: the object represents the configuration that is observed\n      from a specific member cluster.\n\nThe returned boolean value indicates the health status.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

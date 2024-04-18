@@ -1,0 +1,110 @@
+{
+  "description": "ResourceSummary represents the summary of resources in the member cluster.",
+  "type": "object",
+  "properties": {
+    "allocatable": {
+      "description": "Allocatable represents the resources of a cluster that are available for scheduling. Total amount of allocatable resources on all nodes.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        ]
+      }
+    },
+    "allocatableModelings": {
+      "description": "AllocatableModelings represents the statistical resource modeling.",
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "description": "AllocatableModeling represents the number of nodes in which allocatable resources in a specific resource model grade. E.g. AllocatableModeling{Grade: 2, Count: 10} means 10 nodes belong to resource model in grade 2.",
+        "type": [
+          "object",
+          "null"
+        ],
+        "required": [
+          "grade",
+          "count"
+        ],
+        "properties": {
+          "count": {
+            "description": "Count is the number of nodes that own the resources delineated by this modeling.",
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          },
+          "grade": {
+            "description": "Grade is the index of ResourceModel.",
+            "type": "integer",
+            "format": "int32",
+            "default": 0
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "allocated": {
+      "description": "Allocated represents the resources of a cluster that have been scheduled. Total amount of required resources of all Pods that have been scheduled to nodes.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        ]
+      }
+    },
+    "allocating": {
+      "description": "Allocating represents the resources of a cluster that are pending for scheduling. Total amount of required resources of all Pods that are waiting for scheduling.",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

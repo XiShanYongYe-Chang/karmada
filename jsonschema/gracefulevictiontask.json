@@ -1,0 +1,75 @@
+{
+  "description": "GracefulEvictionTask represents a graceful eviction task.",
+  "type": "object",
+  "required": [
+    "fromCluster",
+    "reason",
+    "producer"
+  ],
+  "properties": {
+    "creationTimestamp": {
+      "description": "Time is a wrapper around time.Time which supports correct marshaling to YAML and JSON.  Wrappers are provided for many of the factory methods that the time package offers.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "fromCluster": {
+      "description": "FromCluster which cluster the eviction perform from.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "gracePeriodSeconds": {
+      "description": "GracePeriodSeconds is the maximum waiting duration in seconds before the item should be deleted. If the application on the new cluster cannot reach a Healthy state, Karmada will delete the item after GracePeriodSeconds is reached. Value must be positive integer. It can not co-exist with SuppressDeletion.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "message": {
+      "description": "Message is a human-readable message indicating details about the eviction. This may be an empty string.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "producer": {
+      "description": "Producer indicates the controller who triggered the eviction.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "reason": {
+      "description": "Reason contains a programmatic identifier indicating the reason for the eviction. Producers may define expected values and meanings for this field, and whether the values are considered a guaranteed API. The value should be a CamelCase string. This field may not be empty.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "replicas": {
+      "description": "Replicas indicates the number of replicas should be evicted. Should be ignored for resource type that doesn't have replica.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "int32"
+    },
+    "suppressDeletion": {
+      "description": "SuppressDeletion represents the grace period will be persistent until the tools or human intervention stops it. It can not co-exist with GracePeriodSeconds.",
+      "type": [
+        "boolean",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

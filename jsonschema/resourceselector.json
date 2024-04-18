@@ -1,0 +1,35 @@
+{
+  "description": "ResourceSelector specifies the resources type and its scope.",
+  "type": "object",
+  "required": [
+    "apiVersion",
+    "kind"
+  ],
+  "properties": {
+    "apiVersion": {
+      "description": "APIVersion represents the API version of the target resources.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "kind": {
+      "description": "Kind represents the kind of the target resources.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "namespace": {
+      "description": "Namespace of the target resource. Default is empty, which means all namespaces.",
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}

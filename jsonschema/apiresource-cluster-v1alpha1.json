@@ -1,0 +1,28 @@
+{
+  "description": "APIResource specifies the name and kind names for the resource.",
+  "type": "object",
+  "required": [
+    "name",
+    "kind"
+  ],
+  "properties": {
+    "kind": {
+      "description": "Kind is the kind for the resource (e.g. 'Deployment' is the kind for resource 'deployments')",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    },
+    "name": {
+      "description": "Name is the plural name of the resource.",
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": ""
+    }
+  },
+  "additionalProperties": false,
+  "$schema": "http://json-schema.org/schema#"
+}
