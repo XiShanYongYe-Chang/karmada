@@ -318,6 +318,60 @@ type ApplicationFailoverBehavior struct {
 	// Value must be positive integer.
 	// +optional
 	GracePeriodSeconds *int32 `json:"gracePeriodSeconds,omitempty"`
+
+	// StatePreservation defines the policy for preserving and restoring state data
+	// during failover events for stateful applications.
+	//
+	// When an application fails over from one cluster to another, this policy enables
+	// the extraction of critical data from the original resource configuration.
+	// Upon successful migration, the extracted data is then re-injected into the new
+	// resource, ensuring that the application can resume operation with its previous
+	// state intact.
+	// This is particularly useful for stateful applications where maintaining data
+	// consistency across failover events is crucial.
+	// If not specified, means no state data will be preserved.
+	// +optional
+	StatePreservation *StatePreservation `json:"statePreservation,omitempty"`
+}
+
+// StatePreservation defines the policy for preserving state during failover events.
+type StatePreservation struct {
+	// Rules contains a list of StatePreservationRule configurations.
+	// Each rule specifies a JSONPath expression targeting specific pieces of
+	// state data to be preserved during failover events. An AliasName is associated
+	// with each rule, serving as a label key when the preserved data is passed
+	// to the new cluster.
+	// +required
+	Rules []StatePreservationRule `json:"rules"`
+
+	// Note: We probably need more policies to control how to feed the new cluster with the
+	// preserved state data in the future. Such as:
+	// - Is it always acceptable to feed data as the label? Is there a need for annotation?
+	// - If each label name should be started with a prefix, like `karmada.io/failover-preserving-<fieldname>: <state>`
+	// Sure, we can default with the label, this structure just makes room for future extensions.
+	//
+	// For instance, we can introduce a policy if someone wants to control how the preserving state
+	// feed to new clusters. This is probably not included this time.
+	// RestorePolicy determines when and how the preserved state should be restored.
+	// RestorePolicy RestorePolicy `json:"restorePolicy"`
+}
+
+// StatePreservationRule defines a single rule for state preservation.
+// It includes a JSONPath expression and an alias name that will be used
+// as a label key when passing state information to the new cluster.
+type StatePreservationRule struct {
+	// AliasName is the name that will be used as a label key when the preserved
+	// data is passed to the new cluster. This facilitates the injection of the
+	// preserved state back into the application resources during recovery.
+	// +required
+	AliasName string `json:"aliasName"`
+
+	// JSONPath is the JSONPath query used to identify the state data
+	// to be preserved from the original resource configuration.
+	// Example: ".spec.template.spec.containers[?(@.name=='my-container')].image"
+	// This example selects the image of a container named 'my-container'.
+	// +required
+	JSONPath string `json:"jsonPath"`
 }
 
 // DecisionConditions represents the decision conditions of performing the failover process.
