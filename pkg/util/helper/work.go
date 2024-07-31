@@ -36,6 +36,7 @@ import (
 	workv1alpha1 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha1"
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 	"github.com/karmada-io/karmada/pkg/util"
+	"github.com/karmada-io/karmada/pkg/util/names"
 )
 
 // CreateOrUpdateWork creates a Work object if not exist, or updates if it already exists.
@@ -125,6 +126,28 @@ func GetWorksByBindingID(ctx context.Context, c client.Client, bindingID string,
 	}
 
 	return GetWorksByLabelsSet(ctx, c, ls)
+}
+
+// GetActiveWorkMapByBindingNamespaceName returns a map of active Work objects by binding namespace and name.
+func GetActiveWorkMapByBindinID(c client.Client, bindingID string, namespaced bool) (map[string]*workv1alpha1.Work, error) {
+	workList, err := GetWorksByBindingID(c, bindingID, namespaced)
+	if err != nil {
+		return nil, err
+	}
+	workMap := make(map[string]*workv1alpha1.Work, len(workList.Items))
+	for i := range workList.Items {
+		work := &workList.Items[i]
+		if work.DeletionTimestamp != nil {
+			continue
+		}
+		cluster, err := names.GetClusterName(work.GetNamespace())
+		if err != nil {
+			klog.Errorf("Failed to get cluster name which Work %s/%s belongs to. Error: %v.", work.GetNamespace(), work.GetName(), err)
+			return nil, err
+		}
+		workMap[cluster] = work
+	}
+	return workMap, nil
 }
 
 // GenEventRef returns the event reference. sets the UID(.spec.uid) that might be missing for fire events.

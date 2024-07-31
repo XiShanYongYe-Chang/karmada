@@ -19,12 +19,15 @@ package binding
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/record"
@@ -33,13 +36,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	policyv1alpha1 "github.com/karmada-io/karmada/pkg/apis/policy/v1alpha1"
+	workv1alpha1 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha1"
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 	"github.com/karmada-io/karmada/pkg/events"
+	"github.com/karmada-io/karmada/pkg/features"
 	"github.com/karmada-io/karmada/pkg/metrics"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter"
 	"github.com/karmada-io/karmada/pkg/sharedcli/ratelimiterflag"
@@ -47,6 +53,7 @@ import (
 	"github.com/karmada-io/karmada/pkg/util/fedinformer/genericmanager"
 	"github.com/karmada-io/karmada/pkg/util/helper"
 	"github.com/karmada-io/karmada/pkg/util/overridemanager"
+	"github.com/karmada-io/karmada/pkg/util/rollout"
 )
 
 // ControllerName is the controller name that will be used when reporting events.
@@ -166,13 +173,85 @@ func (c *ResourceBindingController) removeOrphanWorks(ctx context.Context, bindi
 // SetupWithManager creates a controller and register to controller manager.
 func (c *ResourceBindingController) SetupWithManager(mgr controllerruntime.Manager) error {
 	return controllerruntime.NewControllerManagedBy(mgr).For(&workv1alpha2.ResourceBinding{}).
-		WithEventFilter(predicate.GenerationChangedPredicate{}).
+		WithEventFilter(c.newGlobalUpdatePredicate()).
 		Watches(&policyv1alpha1.OverridePolicy{}, handler.EnqueueRequestsFromMapFunc(c.newOverridePolicyFunc())).
 		Watches(&policyv1alpha1.ClusterOverridePolicy{}, handler.EnqueueRequestsFromMapFunc(c.newOverridePolicyFunc())).
+		Watches(&workv1alpha1.Work{}, handler.EnqueueRequestsFromMapFunc(c.newWorkFunc())).
 		WithOptions(controller.Options{RateLimiter: ratelimiterflag.DefaultControllerRateLimiter(c.RateLimiterOptions)}).
 		Complete(c)
 }
 
+// newGlobalUpdatePredicate returns a new global update predicate for this controller.
+func (c *ResourceBindingController) newGlobalUpdatePredicate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			if e.ObjectOld == nil {
+				klog.Error(nil, "Update event has no old object to update", "event", e)
+				return false
+			}
+			if e.ObjectNew == nil {
+				klog.Error(nil, "Update event has no new object for update", "event", e)
+				return false
+			}
+			if e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration() {
+				return true
+			}
+			if features.FeatureGate.Enabled(features.AlignRollingStrategy) {
+				return c.handleWorkUpdate(e)
+			}
+			return false
+		},
+	}
+}
+
+// handleWorkUpdate checks if the work changes should trigger binding controller reconcile.
+func (c *ResourceBindingController) handleWorkUpdate(e event.UpdateEvent) bool {
+	oldWork, ok := e.ObjectOld.(*workv1alpha1.Work)
+	if !ok {
+		return false
+	}
+	newWork, ok := e.ObjectNew.(*workv1alpha1.Work)
+	if !ok {
+		return false
+	}
+
+	if len(newWork.Status.ManifestStatuses) == 0 {
+		return false
+	}
+	newStatus := &newWork.Status.ManifestStatuses[0]
+	groupVersionKind := schema.GroupVersionKind{
+		Group:   newStatus.Identifier.Group,
+		Version: newStatus.Identifier.Version,
+		Kind:    newStatus.Identifier.Kind,
+	}
+	if !rollout.EnableRolloutInterpreter(groupVersionKind) {
+		return false
+	}
+	var oldManifestStatus *runtime.RawExtension
+	if len(oldWork.Status.ManifestStatuses) > 0 {
+		oldManifestStatus = oldWork.Status.ManifestStatuses[0].Status
+	}
+	return !reflect.DeepEqual(oldManifestStatus, newStatus.Status)
+}
+
+// ensureWork ensures the work is created or updated according to the binding.
+func (c *ResourceBindingController) newWorkFunc() handler.MapFunc {
+	return func(ctx context.Context, a client.Object) []reconcile.Request {
+		work, ok := a.(*workv1alpha1.Work)
+		if !ok {
+			return nil
+		}
+		name := util.GetAnnotationValue(work.Annotations, workv1alpha2.ResourceBindingNameAnnotationKey)
+		namespace := util.GetAnnotationValue(work.Annotations, workv1alpha2.ResourceBindingNamespaceAnnotationKey)
+		// We do not handle the binding belonging to cluster scope workload.
+		if len(name) == 0 || len(namespace) == 0 {
+			return nil
+		}
+		return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}}
+	}
+}
+
+// newOverridePolicyFunc returns a new map function to handle override policy changes.
 func (c *ResourceBindingController) newOverridePolicyFunc() handler.MapFunc {
 	return func(ctx context.Context, a client.Object) []reconcile.Request {
 		var overrideRS []policyv1alpha1.ResourceSelector

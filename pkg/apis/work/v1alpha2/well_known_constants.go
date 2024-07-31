@@ -71,6 +71,10 @@ const (
 	//    synced on member clusters, then generates accurate observed generation(like Deployment's .status.observedGeneration)
 	//    which might be required by the release system.
 	ResourceTemplateGenerationAnnotationKey = "resourcetemplate.karmada.io/generation"
+
+	// ResourceTemplateTemplateHashAnnotationKey records the hash of resource template such as the hash of `spec.template` in Deployment.
+	// This hash is very useful when align rolling strategies between Karmada and member clusters.
+	ResourceTemplateTemplateHashAnnotationKey = "resourcetemplate.karmada.io/template-hash"
 )
 
 // Define resource conflict resolution

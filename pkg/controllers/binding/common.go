@@ -31,10 +31,12 @@ import (
 	policyv1alpha1 "github.com/karmada-io/karmada/pkg/apis/policy/v1alpha1"
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter"
+	"github.com/karmada-io/karmada/pkg/resourceinterpreter/rollout"
 	"github.com/karmada-io/karmada/pkg/util"
 	"github.com/karmada-io/karmada/pkg/util/helper"
 	"github.com/karmada-io/karmada/pkg/util/names"
 	"github.com/karmada-io/karmada/pkg/util/overridemanager"
+	rolloututil "github.com/karmada-io/karmada/pkg/util/rollout"
 )
 
 // ensureWork ensure Work to be created or updated.
@@ -78,11 +80,24 @@ func ensureWork(
 		}
 	}
 
+	if rolloututil.EnableRolloutInterpreter(workload.GroupVersionKind()) {
+		// we hope sync workload when the workload has been scheduled.
+		if err = IsFullyScheduled(binding, workload); err != nil {
+			return err
+		}
+		hash, err := CalculateTemplateHash(workload)
+		if err != nil {
+			return err
+		}
+		// must deepcopy before write it.
+		workload = workload.DeepCopy()
+		ReplaceAnnotation(workload, workv1alpha2.ResourceTemplateTemplateHashAnnotationKey, hash)
+	}
+
+	workloads := make(map[string]*unstructured.Unstructured, len(targetClusters))
 	for i := range targetClusters {
 		targetCluster := targetClusters[i]
 		clonedWorkload := workload.DeepCopy()
-
-		workNamespace := names.GenerateExecutionSpaceName(targetCluster.Name)
 
 		// If and only if the resource template has replicas, and the replica scheduling policy is divided,
 		// we need to revise replicas.
@@ -108,6 +123,26 @@ func ensureWork(
 				}
 			}
 		}
+		workloads[targetCluster.Name] = clonedWorkload
+	}
+
+	if rolloututil.EnableRolloutInterpreter(workload.GroupVersionKind()) {
+		workMap, err := helper.GetActiveWorkMapByBindinID(c, binding.GetLabels()[workv1alpha2.ResourceBindingPermanentIDLabel], true)
+		if err != nil {
+			return err
+		}
+		// Ensure the behavior of rolling strategy (e.g., maxUnavailable, maxSurge, partition) in federation is consistent with its semantics.
+		workloads, err = rollout.NewAdapterRolloutInterpreter(workload.GroupVersionKind(), resourceInterpreter).AlignRollingStrategy(workload, workloads, targetClusters, workMap)
+		if err != nil {
+			klog.Errorf("Failed to algin rolling strategy for %s/%s/%s, err is: %v", workload.GetKind(), workload.GetNamespace(), workload.GetName(), err)
+			return err
+		}
+	}
+
+	for i := range targetClusters {
+		targetCluster := targetClusters[i]
+		clonedWorkload := workloads[targetCluster.Name]
+		workNamespace := names.GenerateExecutionSpaceName(targetCluster.Name)
 
 		// We should call ApplyOverridePolicies last, as override rules have the highest priority
 		cops, ops, err := overrideManager.ApplyOverridePolicies(clonedWorkload, targetCluster.Name)

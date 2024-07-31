@@ -4,6 +4,7 @@ go 1.22.6 // keep in sync with .go-version, Readme.md#Prerequisites, hack/util.s
 
 require (
 	github.com/adhocore/gronx v1.6.3
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 	github.com/distribution/reference v0.5.0
 	github.com/emirpasic/gods v1.18.1
 	github.com/evanphx/json-patch/v5 v5.9.0
@@ -78,7 +79,6 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect

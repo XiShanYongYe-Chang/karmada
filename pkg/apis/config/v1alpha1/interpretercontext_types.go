@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 )
@@ -178,4 +179,54 @@ type DependentObjectReference struct {
 	// Name and LabelSelector cannot be empty at the same time.
 	// +optional
 	LabelSelector *metav1.LabelSelector `json:"labelSelector,omitempty"`
+}
+
+type RollingStrategy struct {
+	// Paused indicates that the rolling update should be paused.
+	Paused *bool `json:"paused,omitempty"`
+
+	// Partition is the desired number or percent of Pods in old revisions.
+	// For example:
+	// - Replicas=5 and Partition=2 means that the controller will keep 2
+	//   Pods in old revisions and 3 Pods in new revisions.
+	//
+	// Refer to https://openkruise.io/docs/user-manuals/cloneset#partition
+	Partition *intstr.IntOrString `json:"partition,omitempty"`
+
+	// MaxUnavailable is an optional field that specifies the maximum number of
+	// Pods that can be unavailable during the update process.
+	// Refer to https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#max-unavailable
+	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty"`
+
+	// MaxSurge is an optional field that specifies the maximum number of Pods
+	// that can be created over the desired number of Pods.
+	// Refer to https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#max-surge
+	MaxSurge *intstr.IntOrString `json:"maxSurge,omitempty"`
+}
+
+type UnifiedRollingStatus struct {
+	// Generation is a sequence number representing a specific generation of the desired state. Set by the system and monotonically increasing, per-resource. May be compared, such as for RAW and WAW consistency.
+	// Refer to https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#metadata
+	Generation *int64 `json:"generation,omitempty"`
+
+	// ObservedGeneration represent the most recent generation observed by the daemon set controller.
+	ObservedGeneration *int64 `json:"observedGeneration,omitempty"`
+
+	// ResourceTemplateGeneration represent the generation of the resource template of karmada resource.
+	ResourceTemplateGeneration *int64 `json:"resourceTemplateGeneration,omitempty"`
+
+	// Replicas is the number of Pods created by the controller.
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// ReadyReplicas is the number of Pods created by the controller that have a Ready Condition.
+	ReadyReplicas *int32 `json:"readyReplicas,omitempty"`
+
+	// AvailableReplicas is the number of Pods created by the controller that have a Ready Condition for at least minReadySeconds.
+	AvailableReplicas *int32 `json:"availableReplicas,omitempty"`
+
+	// UpdatedReplicas is the number of Pods created by the controller from the ReplicaSet version indicated by updateRevision.
+	UpdatedReplicas *int32 `json:"updatedReplicas,omitempty"`
+
+	// UpdatedReadyReplicas is the number of Pods created by the controller from the ReplicaSet version indicated by updateRevision and have a Ready Condition.
+	UpdatedReadyReplicas *int32 `json:"updatedReadyReplicas,omitempty"`
 }

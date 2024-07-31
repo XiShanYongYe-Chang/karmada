@@ -43,6 +43,9 @@ const (
 
 	// ResourceQuotaEstimate indicates if enable resource quota check in estimator
 	ResourceQuotaEstimate featuregate.Feature = "ResourceQuotaEstimate"
+
+	// AlignRollingStrategy indicates if enable align rolling strategy when sync work to members
+	AlignRollingStrategy featuregate.Feature = "AlignRollingStrategy"
 )
 
 var (
@@ -58,6 +61,7 @@ var (
 		PolicyPreemption:                  {Default: false, PreRelease: featuregate.Alpha},
 		MultiClusterService:               {Default: false, PreRelease: featuregate.Alpha},
 		ResourceQuotaEstimate:             {Default: false, PreRelease: featuregate.Alpha},
+		AlignRollingStrategy:              {Default: true, PreRelease: featuregate.Alpha},
 	}
 )
 

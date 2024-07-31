@@ -32,25 +32,31 @@ import (
 // DefaultInterpreter contains all default operation interpreter factory
 // for interpreting common resource.
 type DefaultInterpreter struct {
-	replicaHandlers         map[schema.GroupVersionKind]replicaInterpreter
-	reviseReplicaHandlers   map[schema.GroupVersionKind]reviseReplicaInterpreter
-	retentionHandlers       map[schema.GroupVersionKind]retentionInterpreter
-	aggregateStatusHandlers map[schema.GroupVersionKind]aggregateStatusInterpreter
-	dependenciesHandlers    map[schema.GroupVersionKind]dependenciesInterpreter
-	reflectStatusHandlers   map[schema.GroupVersionKind]reflectStatusInterpreter
-	healthHandlers          map[schema.GroupVersionKind]healthInterpreter
+	replicaHandlers               map[schema.GroupVersionKind]replicaInterpreter
+	reviseReplicaHandlers         map[schema.GroupVersionKind]reviseReplicaInterpreter
+	retentionHandlers             map[schema.GroupVersionKind]retentionInterpreter
+	aggregateStatusHandlers       map[schema.GroupVersionKind]aggregateStatusInterpreter
+	dependenciesHandlers          map[schema.GroupVersionKind]dependenciesInterpreter
+	reflectStatusHandlers         map[schema.GroupVersionKind]reflectStatusInterpreter
+	healthHandlers                map[schema.GroupVersionKind]healthInterpreter
+	rollingStrategyHandlers       map[schema.GroupVersionKind]rollingStrategyInterpreter
+	reviseRollingStrategyHandlers map[schema.GroupVersionKind]reviseRollingStrategyInterpreter
+	rollingStatusHandlers         map[schema.GroupVersionKind]rollingStatusInterpreter
 }
 
 // NewDefaultInterpreter return a new DefaultInterpreter.
 func NewDefaultInterpreter() *DefaultInterpreter {
 	return &DefaultInterpreter{
-		replicaHandlers:         getAllDefaultReplicaInterpreter(),
-		reviseReplicaHandlers:   getAllDefaultReviseReplicaInterpreter(),
-		retentionHandlers:       getAllDefaultRetentionInterpreter(),
-		aggregateStatusHandlers: getAllDefaultAggregateStatusInterpreter(),
-		dependenciesHandlers:    getAllDefaultDependenciesInterpreter(),
-		reflectStatusHandlers:   getAllDefaultReflectStatusInterpreter(),
-		healthHandlers:          getAllDefaultHealthInterpreter(),
+		replicaHandlers:               getAllDefaultReplicaInterpreter(),
+		reviseReplicaHandlers:         getAllDefaultReviseReplicaInterpreter(),
+		retentionHandlers:             getAllDefaultRetentionInterpreter(),
+		aggregateStatusHandlers:       getAllDefaultAggregateStatusInterpreter(),
+		dependenciesHandlers:          getAllDefaultDependenciesInterpreter(),
+		reflectStatusHandlers:         getAllDefaultReflectStatusInterpreter(),
+		healthHandlers:                getAllDefaultHealthInterpreter(),
+		rollingStrategyHandlers:       getAllDefaultRollingStrategyInterpreter(),
+		reviseRollingStrategyHandlers: reviseAllDefaultRollingStrategyInterpreter(),
+		rollingStatusHandlers:         getAllDefaultRollingStatusInterpreter(),
 	}
 }
 
@@ -79,6 +85,18 @@ func (e *DefaultInterpreter) HookEnabled(kind schema.GroupVersionKind, operation
 		}
 	case configv1alpha1.InterpreterOperationInterpretStatus:
 		return true
+	case configv1alpha1.InterpreterOperationRollingStrategy:
+		if _, exist := e.rollingStrategyHandlers[kind]; exist {
+			return true
+		}
+	case configv1alpha1.InterpreterOperationReviseRollingStrategy:
+		if _, exist := e.reviseRollingStrategyHandlers[kind]; exist {
+			return true
+		}
+	case configv1alpha1.InterpreterOperationRollingStatus:
+		if _, exist := e.rollingStatusHandlers[kind]; exist {
+			return true
+		}
 	case configv1alpha1.InterpreterOperationInterpretHealth:
 		if _, exist := e.healthHandlers[kind]; exist {
 			return true
@@ -166,4 +184,34 @@ func (e *DefaultInterpreter) InterpretHealth(object *unstructured.Unstructured) 
 	}
 
 	return false, fmt.Errorf("default %s interpreter for %q not found", configv1alpha1.InterpreterOperationInterpretHealth, object.GroupVersionKind())
+}
+
+func (e *DefaultInterpreter) GetRollingStrategy(object *unstructured.Unstructured) (*configv1alpha1.RollingStrategy, error) {
+	klog.V(4).Infof("Get rolling strategy of object: %v %s/%s with build-in interpreter.", object.GroupVersionKind(), object.GetNamespace(), object.GetName())
+	handler, exist := e.rollingStrategyHandlers[object.GroupVersionKind()]
+	if exist {
+		return handler(object)
+	}
+
+	return nil, fmt.Errorf("default %s interpreter for %q not found", configv1alpha1.InterpreterOperationRollingStrategy, object.GroupVersionKind())
+}
+
+func (e *DefaultInterpreter) ReviseRollingStrategy(object *unstructured.Unstructured, rollingStrategy *configv1alpha1.RollingStrategy) (*unstructured.Unstructured, error) {
+	klog.V(4).Infof("Revise rolling strategy of object: %v %s/%s with build-in interpreter.", object.GroupVersionKind(), object.GetNamespace(), object.GetName())
+	handler, exist := e.reviseRollingStrategyHandlers[object.GroupVersionKind()]
+	if exist {
+		return handler(object, rollingStrategy)
+	}
+
+	return object, nil
+}
+
+func (e *DefaultInterpreter) InterpretRollingStatus(object *unstructured.Unstructured, rawStatus *runtime.RawExtension) (*configv1alpha1.UnifiedRollingStatus, error) {
+	klog.V(4).Infof("Get rolling status of object: %v %s/%s with build-in interpreter.", object.GroupVersionKind(), object.GetNamespace(), object.GetName())
+	handler, exist := e.rollingStatusHandlers[object.GroupVersionKind()]
+	if exist {
+		return handler(object, rawStatus)
+	}
+
+	return nil, fmt.Errorf("default %s interpreter for %q not found", configv1alpha1.InterpreterOperationRollingStatus, object.GroupVersionKind())
 }

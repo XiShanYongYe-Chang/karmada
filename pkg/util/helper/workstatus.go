@@ -40,6 +40,7 @@ import (
 	"github.com/karmada-io/karmada/pkg/events"
 	"github.com/karmada-io/karmada/pkg/util"
 	"github.com/karmada-io/karmada/pkg/util/names"
+	"github.com/karmada-io/karmada/pkg/util/rollout"
 )
 
 const (
@@ -184,7 +185,7 @@ func assembleWorkStatus(works []workv1alpha1.Work, objRef workv1alpha2.ObjectRef
 				panic("unexpected status")
 			}
 		}
-		if !applied {
+		if !applied && !rollout.EnableRolloutInterpreter(work.GroupVersionKind()) {
 			aggregatedStatus := workv1alpha2.AggregatedStatusItem{
 				ClusterName:    clusterName,
 				Applied:        applied,
