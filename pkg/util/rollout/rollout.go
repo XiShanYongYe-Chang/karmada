@@ -4,7 +4,6 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	"github.com/karmada-io/karmada/pkg/features"
 	"github.com/karmada-io/karmada/pkg/util"
 )
 
@@ -47,8 +46,5 @@ func IsStatefulRollingKind(groupVersionKind schema.GroupVersionKind) bool {
 
 // EnableRolloutInterpreter returns true if the rollout interpreter is enabled for the given groupVersionKind.
 func EnableRolloutInterpreter(groupVersionKind schema.GroupVersionKind) bool {
-	if !features.FeatureGate.Enabled(features.AlignRollingStrategy) {
-		return false
-	}
 	return IsStatelessRollingKind(groupVersionKind) || IsStatefulRollingKind(groupVersionKind)
 }

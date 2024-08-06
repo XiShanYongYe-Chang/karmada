@@ -13,8 +13,8 @@ import (
 	hash "github.com/karmada-io/karmada/pkg/util/hasher"
 )
 
-// ReplaceAnnotation replaces the annotation of the object with the given key and value.
-func ReplaceAnnotation(obj *unstructured.Unstructured, key, value string) {
+// replaceAnnotation replaces the annotation of the object with the given key and value.
+func replaceAnnotation(obj *unstructured.Unstructured, key, value string) {
 	annotations := obj.GetAnnotations()
 	if annotations == nil {
 		annotations = make(map[string]string)
@@ -23,8 +23,8 @@ func ReplaceAnnotation(obj *unstructured.Unstructured, key, value string) {
 	obj.SetAnnotations(annotations)
 }
 
-// IsFullyScheduled checks if the workload is fully scheduled.
-func IsFullyScheduled(binding metav1.Object, workload *unstructured.Unstructured) error {
+// isFullyScheduled checks if the workload is fully scheduled.
+func isFullyScheduled(binding metav1.Object, workload *unstructured.Unstructured) error {
 	resourceBinding, ok := binding.(*workv1alpha2.ResourceBinding)
 	if !ok {
 		return nil
@@ -43,9 +43,9 @@ func IsFullyScheduled(binding metav1.Object, workload *unstructured.Unstructured
 	return nil
 }
 
-// CalculateTemplateHash calculates the hash of the template of the workload.
-func CalculateTemplateHash(workload *unstructured.Unstructured) (string, error) {
-	// TODO: Template should get from resource interpreter method
+// calculateTemplateHash calculates the hash of the template of the workload.
+func calculateTemplateHash(workload *unstructured.Unstructured) (string, error) {
+	// TODO: Template should get from resource interpreter method，这又是一个新的扩展点是么，是否可以通过其他方式实现？
 	template, ok, err := unstructured.NestedFieldNoCopy(workload.Object, "spec", "template")
 	if err != nil || !ok {
 		return "", fmt.Errorf("failed to nested unstructured template for %s(%s/%s): %v", workload.GetKind(), workload.GetNamespace(), workload.GetName(), err)

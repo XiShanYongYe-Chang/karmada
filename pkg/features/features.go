@@ -61,7 +61,7 @@ var (
 		PolicyPreemption:                  {Default: false, PreRelease: featuregate.Alpha},
 		MultiClusterService:               {Default: false, PreRelease: featuregate.Alpha},
 		ResourceQuotaEstimate:             {Default: false, PreRelease: featuregate.Alpha},
-		AlignRollingStrategy:              {Default: true, PreRelease: featuregate.Alpha},
+		AlignRollingStrategy:              {Default: false, PreRelease: featuregate.Alpha},
 	}
 )
 

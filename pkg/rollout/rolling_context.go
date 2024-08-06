@@ -2,14 +2,16 @@ package rollout
 
 import (
 	"fmt"
-	"github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 	"strconv"
+
+	"k8s.io/utils/integer"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 
 	configv1alpha1 "github.com/karmada-io/karmada/pkg/apis/config/v1alpha1"
+	"github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 	"github.com/karmada-io/karmada/pkg/util"
 )
 
@@ -32,6 +34,20 @@ type rollingContext struct {
 
 	// Status of the workload
 	Status *configv1alpha1.UnifiedRollingStatus
+}
+
+// OldRevisionReplicas return the old revision replicas.
+func (c *rollingContext) OldRevisionReplicas() int32 {
+	return *c.Status.Replicas - *c.Status.UpdatedReplicas
+}
+
+// UpdatedUnavailableReplicas return the updated unavailable replicas.
+func (c *rollingContext) UpdatedUnavailableReplicas() int32 {
+	updatedReadyReplicas := int32(0)
+	if c.Status.UpdatedReadyReplicas != nil {
+		updatedReadyReplicas = *c.Status.UpdatedReadyReplicas
+	}
+	return integer.Int32Min(*c.Status.UpdatedReplicas-updatedReadyReplicas, 0)
 }
 
 func checkRollingStrategyAligned(federation *rollingContext, members []*rollingContext) error {
@@ -85,58 +101,64 @@ func normalizeRollingStrategy(strategy *configv1alpha1.RollingStrategy, replicas
 		strategy = &configv1alpha1.RollingStrategy{}
 	}
 
-	if strategy.Partition == nil {
-		strategy.Partition = &intstr.IntOrString{Type: intstr.Int, IntVal: 0}
-	} else {
-		strategy.Partition, err = transIntValueIfNeeds(replicas, strategy.Partition)
-		if err != nil {
-			return nil, fmt.Errorf("failed to translate partition value: %v", err)
-		}
+	strategy.Partition, err = getScaledIntOrStringFromIntOrPercent(strategy.Partition, replicas)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scaled partition value: %v", err)
 	}
-
-	if strategy.MaxUnavailable == nil {
-		strategy.MaxUnavailable = &intstr.IntOrString{Type: intstr.Int, IntVal: 0}
-	} else {
-		strategy.MaxUnavailable, err = transIntValueIfNeeds(replicas, strategy.MaxUnavailable)
-		if err != nil {
-			return nil, fmt.Errorf("failed to translate max-unavailable value: %v", err)
-		}
+	strategy.MaxUnavailable, err = getScaledIntOrStringFromIntOrPercent(strategy.MaxUnavailable, replicas)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scaled maxUnavailable value: %v", err)
 	}
-
-	if strategy.MaxSurge == nil {
-		strategy.MaxSurge = &intstr.IntOrString{Type: intstr.Int, IntVal: 0}
-	} else {
-		strategy.MaxSurge, err = transIntValueIfNeeds(replicas, strategy.MaxSurge)
-		if err != nil {
-			return nil, fmt.Errorf("failed to translate max-surge value: %v", err)
-		}
+	strategy.MaxSurge, err = getScaledIntOrStringFromIntOrPercent(strategy.MaxSurge, replicas)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scaled maxSurge value: %v", err)
 	}
 	return strategy, nil
 }
 
-// isMemberGenerationConsistent checks if member generation is consistent with work's manifests
-func isMemberGenerationConsistent(member *unstructured.Unstructured, status *configv1alpha1.UnifiedRollingStatus) bool {
-	// check if member controller is still reconciling
-	if status.Generation != nil && status.ObservedGeneration != nil && *status.Generation != *status.ObservedGeneration {
+func getScaledIntOrStringFromIntOrPercent(intOrPercent *intstr.IntOrString, total int32) (*intstr.IntOrString, error) {
+	if intOrPercent == nil {
+		return &intstr.IntOrString{Type: intstr.Int, IntVal: 0}, nil
+	}
+
+	// short path
+	if intOrPercent.Type == intstr.Int {
+		return intOrPercent, nil
+	}
+
+	intValue, err := intstr.GetScaledValueFromIntOrPercent(intOrPercent, int(total), true)
+	if err != nil {
+		return nil, err
+	}
+	return &intstr.IntOrString{Type: intstr.Int, IntVal: int32(intValue)}, nil
+}
+
+// isWorkloadGenerationConsistent checks if member generation is consistent with work's manifests
+func isWorkloadGenerationConsistent(workload *unstructured.Unstructured, status *configv1alpha1.UnifiedRollingStatus) bool {
+	// check if workload controller is still reconciling
+	if status.Generation != nil && status.ObservedGeneration != nil &&
+		*status.Generation != *status.ObservedGeneration {
 		return false
 	}
-	// check if member status is inconsistent with corresponding work's manifest
-	resourceTemplateGenerationTarget := util.GetAnnotationValue(member.GetAnnotations(), v1alpha2.ResourceTemplateGenerationAnnotationKey)
+	// check if workload status is inconsistent with corresponding work's manifest
+	resourceTemplateGeneration := util.GetAnnotationValue(workload.GetAnnotations(), v1alpha2.ResourceTemplateGenerationAnnotationKey)
 	if status.ResourceTemplateGeneration != nil && *status.ResourceTemplateGeneration > 0 &&
-		strconv.Itoa(int(*status.ResourceTemplateGeneration)) != resourceTemplateGenerationTarget {
+		strconv.Itoa(int(*status.ResourceTemplateGeneration)) != resourceTemplateGeneration {
 		return false
 	}
 	return true
 }
 
 // normalizeRollingContext normalizes the rolling context for each member
-func normalizeRollingContext(member, federation *rollingContext, desired int32) error {
+func normalizeRollingContext(member, federation *rollingContext, desired int32) (*rollingContext, error) {
 	var err error
 	member.DesiredReplicas = desired
 	member.Status = normalizeRollingStatus(member.Status)
+	// 这里用 federation.DesiredReplicas，如果是百分比的话，会计算出错的吧，因为对于每个集群上的workload来说，总值是之前的副本数
+	// 而且之前的结果也是我们设置上的，应该用的都是数字，即使真的有百分比存在，这里副本数使用desired也会更好。
 	member.RollingStrategy, err = normalizeRollingStrategy(member.RollingStrategy, federation.DesiredReplicas)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// if current member revision is inconsistent with federation,
@@ -145,17 +167,5 @@ func normalizeRollingContext(member, federation *rollingContext, desired int32) 
 		member.Status.UpdatedReplicas = pointer.Int32(0)
 		member.Status.UpdatedReadyReplicas = pointer.Int32(0)
 	}
-	return nil
-}
-
-// transIntValueIfNeeds translates the int or percent value to int value if needed.
-func transIntValueIfNeeds(replicas int32, partition *intstr.IntOrString) (*intstr.IntOrString, error) {
-	if partition.Type == intstr.Int {
-		return partition, nil
-	}
-	intValue, err := intstr.GetScaledValueFromIntOrPercent(partition, int(replicas), true)
-	if err != nil {
-		return nil, err
-	}
-	return &intstr.IntOrString{Type: intstr.Int, IntVal: int32(intValue)}, nil
+	return member, nil
 }

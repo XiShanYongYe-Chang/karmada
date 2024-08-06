@@ -33,6 +33,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog/v2"
 	controllerruntime "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -53,7 +54,6 @@ import (
 	"github.com/karmada-io/karmada/pkg/util/fedinformer/genericmanager"
 	"github.com/karmada-io/karmada/pkg/util/helper"
 	"github.com/karmada-io/karmada/pkg/util/overridemanager"
-	"github.com/karmada-io/karmada/pkg/util/rollout"
 )
 
 // ControllerName is the controller name that will be used when reporting events.
@@ -173,81 +173,74 @@ func (c *ResourceBindingController) removeOrphanWorks(ctx context.Context, bindi
 // SetupWithManager creates a controller and register to controller manager.
 func (c *ResourceBindingController) SetupWithManager(mgr controllerruntime.Manager) error {
 	return controllerruntime.NewControllerManagedBy(mgr).For(&workv1alpha2.ResourceBinding{}).
-		WithEventFilter(c.newGlobalUpdatePredicate()).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Watches(&policyv1alpha1.OverridePolicy{}, handler.EnqueueRequestsFromMapFunc(c.newOverridePolicyFunc())).
 		Watches(&policyv1alpha1.ClusterOverridePolicy{}, handler.EnqueueRequestsFromMapFunc(c.newOverridePolicyFunc())).
-		Watches(&workv1alpha1.Work{}, handler.EnqueueRequestsFromMapFunc(c.newWorkFunc())).
+		Watches(&workv1alpha1.Work{}, handler.EnqueueRequestsFromMapFunc(newWorkFunc()), builder.WithPredicates(c.workPredicate())).
 		WithOptions(controller.Options{RateLimiter: ratelimiterflag.DefaultControllerRateLimiter(c.RateLimiterOptions)}).
 		Complete(c)
 }
 
-// newGlobalUpdatePredicate returns a new global update predicate for this controller.
-func (c *ResourceBindingController) newGlobalUpdatePredicate() predicate.Predicate {
+func (c *ResourceBindingController) workPredicate() predicate.Predicate {
 	return predicate.Funcs{
+		CreateFunc: func(event.CreateEvent) bool { return false }, // 是否需要关心work的创建事件，如果不赋值，表示true
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			if e.ObjectOld == nil {
-				klog.Error(nil, "Update event has no old object to update", "event", e)
-				return false
-			}
-			if e.ObjectNew == nil {
-				klog.Error(nil, "Update event has no new object for update", "event", e)
-				return false
-			}
-			if e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration() {
-				return true
-			}
 			if features.FeatureGate.Enabled(features.AlignRollingStrategy) {
-				return c.handleWorkUpdate(e)
+				return c.handleWorkRollingStrategy(e)
 			}
 			return false
 		},
+		DeleteFunc:  func(event.DeleteEvent) bool { return false }, // 是否需要关心work的删除事件，如果不赋值，表示true
+		GenericFunc: func(event.GenericEvent) bool { return false },
 	}
 }
 
-// handleWorkUpdate checks if the work changes should trigger binding controller reconcile.
-func (c *ResourceBindingController) handleWorkUpdate(e event.UpdateEvent) bool {
-	oldWork, ok := e.ObjectOld.(*workv1alpha1.Work)
-	if !ok {
-		return false
-	}
+// handleWorkRollingStrategy checks if the work is related to rollingStrategy.
+func (c *ResourceBindingController) handleWorkRollingStrategy(e event.UpdateEvent) bool {
 	newWork, ok := e.ObjectNew.(*workv1alpha1.Work)
 	if !ok {
 		return false
 	}
-
 	if len(newWork.Status.ManifestStatuses) == 0 {
 		return false
 	}
-	newStatus := &newWork.Status.ManifestStatuses[0]
+	newStatus := newWork.Status.ManifestStatuses[0]
 	groupVersionKind := schema.GroupVersionKind{
 		Group:   newStatus.Identifier.Group,
 		Version: newStatus.Identifier.Version,
 		Kind:    newStatus.Identifier.Kind,
 	}
-	if !rollout.EnableRolloutInterpreter(groupVersionKind) {
+	if !careAboutRollingStrategy(c.ResourceInterpreter, groupVersionKind) {
+		return false
+	}
+
+	oldWork, ok := e.ObjectOld.(*workv1alpha1.Work)
+	if !ok {
 		return false
 	}
 	var oldManifestStatus *runtime.RawExtension
 	if len(oldWork.Status.ManifestStatuses) > 0 {
 		oldManifestStatus = oldWork.Status.ManifestStatuses[0].Status
 	}
-	return !reflect.DeepEqual(oldManifestStatus, newStatus.Status)
+	return !reflect.DeepEqual(&oldManifestStatus, &newStatus.Status) // 如果为指针比较，将永远为false
 }
 
-// ensureWork ensures the work is created or updated according to the binding.
-func (c *ResourceBindingController) newWorkFunc() handler.MapFunc {
-	return func(ctx context.Context, a client.Object) []reconcile.Request {
-		work, ok := a.(*workv1alpha1.Work)
-		if !ok {
-			return nil
+func newWorkFunc() handler.MapFunc {
+	return func(_ context.Context, workObj client.Object) []reconcile.Request {
+		var requests []reconcile.Request
+
+		annotations := workObj.GetAnnotations()
+		namespace, nsExist := annotations[workv1alpha2.ResourceBindingNamespaceAnnotationKey]
+		name, nameExist := annotations[workv1alpha2.ResourceBindingNameAnnotationKey]
+		if nsExist && nameExist {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: types.NamespacedName{
+					Namespace: namespace,
+					Name:      name,
+				},
+			})
 		}
-		name := util.GetAnnotationValue(work.Annotations, workv1alpha2.ResourceBindingNameAnnotationKey)
-		namespace := util.GetAnnotationValue(work.Annotations, workv1alpha2.ResourceBindingNamespaceAnnotationKey)
-		// We do not handle the binding belonging to cluster scope workload.
-		if len(name) == 0 || len(namespace) == 0 {
-			return nil
-		}
-		return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: name, Namespace: namespace}}}
+		return requests
 	}
 }
 

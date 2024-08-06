@@ -203,7 +203,7 @@ func (e *DefaultInterpreter) ReviseRollingStrategy(object *unstructured.Unstruct
 		return handler(object, rollingStrategy)
 	}
 
-	return object, nil
+	return nil, fmt.Errorf("default %s interpreter for %q not found", configv1alpha1.InterpreterOperationRollingStatus, object.GroupVersionKind())
 }
 
 func (e *DefaultInterpreter) InterpretRollingStatus(object *unstructured.Unstructured, rawStatus *runtime.RawExtension) (*configv1alpha1.UnifiedRollingStatus, error) {

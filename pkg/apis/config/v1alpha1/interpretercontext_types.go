@@ -183,6 +183,7 @@ type DependentObjectReference struct {
 
 type RollingStrategy struct {
 	// Paused indicates that the rolling update should be paused.
+	// 为什么还有pause字段？
 	Paused *bool `json:"paused,omitempty"`
 
 	// Partition is the desired number or percent of Pods in old revisions.
@@ -228,5 +229,6 @@ type UnifiedRollingStatus struct {
 	UpdatedReplicas *int32 `json:"updatedReplicas,omitempty"`
 
 	// UpdatedReadyReplicas is the number of Pods created by the controller from the ReplicaSet version indicated by updateRevision and have a Ready Condition.
+	// 这个字段在 Deployment、ReplicaSet、StatefulSet 中均没有，是比较特殊么
 	UpdatedReadyReplicas *int32 `json:"updatedReadyReplicas,omitempty"`
 }

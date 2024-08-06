@@ -128,9 +128,9 @@ func GetWorksByBindingID(ctx context.Context, c client.Client, bindingID string,
 	return GetWorksByLabelsSet(ctx, c, ls)
 }
 
-// GetActiveWorkMapByBindingNamespaceName returns a map of active Work objects by binding namespace and name.
-func GetActiveWorkMapByBindinID(c client.Client, bindingID string, namespaced bool) (map[string]*workv1alpha1.Work, error) {
-	workList, err := GetWorksByBindingID(c, bindingID, namespaced)
+// GetActiveWorksByBindingID returns a map of active Work objects by binding ID.
+func GetActiveWorksByBindingID(ctx context.Context, c client.Client, bindingID string, namespaced bool) (map[string]*workv1alpha1.Work, error) {
+	workList, err := GetWorksByBindingID(ctx, c, bindingID, namespaced)
 	if err != nil {
 		return nil, err
 	}
