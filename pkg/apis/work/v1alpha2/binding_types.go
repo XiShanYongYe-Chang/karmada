@@ -21,6 +21,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"time"
 
 	policyv1alpha1 "github.com/karmada-io/karmada/pkg/apis/policy/v1alpha1"
 )
@@ -332,6 +333,10 @@ type ResourceBindingStatus struct {
 	// AggregatedStatus represents status list of the resource running in each member cluster.
 	// +optional
 	AggregatedStatus []AggregatedStatusItem `json:"aggregatedStatus,omitempty"`
+
+	// FailoverHistory represents the history of failover process.
+	// +optional
+	FailoverHistory []FailoverHistoryItem `json:"failoverHistory,omitempty"`
 }
 
 // AggregatedStatusItem represents status of the resource running in a member cluster.
@@ -361,6 +366,46 @@ type AggregatedStatusItem struct {
 	// +optional
 	Health ResourceHealth `json:"health,omitempty"`
 }
+
+// FailoverHistoryItem represents a single failover event in the history.
+type FailoverHistoryItem struct {
+	// FromCluster is the cluster name from which application was migrated.
+	// +required
+	FromCluster string `json:"fromCluster"`
+
+	// Reason is the type of failover.
+	// +kubebuilder:validation:Enum=Healthy;Unhealthy;Unknown
+	// +required
+	Reason FailoverReason `json:"reason"`
+
+	// StartTime is the timestam when the failover occurred.
+	// +required
+	StartTime time.Time `json:"startTime"`
+
+	// ClustersBeforeFailover records the clusters where running the application before failover.
+	// +required
+	ClustersBeforeFailover []string `json:"originalClusters"`
+
+	// ClustersAfterFailover records the clusters where running the application after failover.
+	// +optional
+	ClustersAfterFailover []string `json:"targetClusters,omitempty"`
+
+	// PreservedLabelState represents the application state information collected from the original cluster,
+	// and it will be injected into the new cluster in form of application labels.
+	// +optional
+	PreservedLabelState map[string]string `json:"preservedLabelState,omitempty"`
+}
+
+// FailoverReason represents the reason for the failover.
+type FailoverReason string
+
+const (
+	// ClusterFailover represents the failover is due to cluster issues.
+	ClusterFailover FailoverReason = "ClusterFailover"
+
+	// ApplicationFailover represents the failover is due to application issues.
+	ApplicationFailover FailoverReason = "ApplicationFailover" // Failover due to application issues.
+)
 
 // Conditions definition
 const (
