@@ -23,6 +23,10 @@ type TaskOptions struct {
 	message            string
 	gracePeriodSeconds *int32
 	suppressDeletion   *bool
+
+	// PreservedLabelState represents the application state information collected from the original cluster,
+	// and it will be injected into the new cluster in form of application labels.
+	PreservedLabelState map[string]string
 }
 
 // Option configures a TaskOptions
@@ -153,12 +157,13 @@ func (s *ResourceBindingSpec) GracefulEvictCluster(name string, options *TaskOpt
 	// build eviction task
 	evictingCluster := evictCluster.DeepCopy()
 	evictionTask := GracefulEvictionTask{
-		FromCluster:        evictingCluster.Name,
-		Reason:             options.reason,
-		Message:            options.message,
-		Producer:           options.producer,
-		GracePeriodSeconds: options.gracePeriodSeconds,
-		SuppressDeletion:   options.suppressDeletion,
+		FromCluster:         evictingCluster.Name,
+		Reason:              options.reason,
+		Message:             options.message,
+		Producer:            options.producer,
+		GracePeriodSeconds:  options.gracePeriodSeconds,
+		SuppressDeletion:    options.suppressDeletion,
+		PreservedLabelState: options.PreservedLabelState,
 	}
 	if evictingCluster.Replicas > 0 {
 		evictionTask.Replicas = &evictingCluster.Replicas

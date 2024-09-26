@@ -157,8 +157,13 @@ func (c *RBApplicationFailoverController) evictBinding(binding *workv1alpha2.Res
 		switch binding.Spec.Failover.Application.PurgeMode {
 		case policyv1alpha1.Graciously:
 			if features.FeatureGate.Enabled(features.GracefulEviction) {
-				binding.Spec.GracefulEvictCluster(cluster, workv1alpha2.NewTaskOptions(workv1alpha2.WithProducer(RBApplicationFailoverControllerName),
-					workv1alpha2.WithReason(workv1alpha2.EvictionReasonApplicationFailure), workv1alpha2.WithGracePeriodSeconds(binding.Spec.Failover.Application.GracePeriodSeconds)))
+				binding.Spec.GracefulEvictCluster(cluster, workv1alpha2.NewTaskOptions(
+					workv1alpha2.WithProducer(RBApplicationFailoverControllerName),
+					workv1alpha2.WithReason(workv1alpha2.EvictionReasonApplicationFailure),
+					workv1alpha2.WithGracePeriodSeconds(binding.Spec.Failover.Application.GracePeriodSeconds),
+				))
+				// TODO: Need to grab preservation from .status.aggregatedStatus according to .spec.failover.application.StatePreservation
+				// The demo code can be found at: https://github.com/RainbowMango/karmada/blob/4783b5210281f88f4baa07af4d7e7a7432c6d2b2/pkg/util/helper/workstatus.go#L220-L262
 			} else {
 				err := fmt.Errorf("GracefulEviction featureGate must be enabled when purgeMode is %s", policyv1alpha1.Graciously)
 				klog.Error(err)
