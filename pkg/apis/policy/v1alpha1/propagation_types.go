@@ -338,7 +338,7 @@ type ApplicationFailoverBehavior struct {
 type StatePreservation struct {
 	// Rules contains a list of StatePreservationRule configurations.
 	// Each rule specifies a JSONPath expression targeting specific pieces of
-	// state data to be preserved during failover events. An AliasName is associated
+	// state data to be preserved during failover events. An AliasLabelName is associated
 	// with each rule, serving as a label key when the preserved data is passed
 	// to the new cluster.
 	// +required
@@ -360,16 +360,22 @@ type StatePreservation struct {
 // It includes a JSONPath expression and an alias name that will be used
 // as a label key when passing state information to the new cluster.
 type StatePreservationRule struct {
-	// AliasName is the name that will be used as a label key when the preserved
+	// AliasLabelName is the name that will be used as a label key when the preserved
 	// data is passed to the new cluster. This facilitates the injection of the
 	// preserved state back into the application resources during recovery.
 	// +required
-	AliasName string `json:"aliasName"`
+	AliasLabelName string `json:"aliasLabelName"`
 
-	// JSONPath is the JSONPath query used to identify the state data
+	// JSONPath is the JSONPath template used to identify the state data
 	// to be preserved from the original resource configuration.
-	// Example: ".spec.template.spec.containers[?(@.name=='my-container')].image"
-	// This example selects the image of a container named 'my-container'.
+	// The JSONPath syntax follows the Kubernetes specification:
+	// https://kubernetes.io/docs/reference/kubectl/jsonpath/
+	//
+	// Note: The JSONPath expression will start searching from the "status" field of
+	// the API resource object by default. For example, to extract the "availableReplicas"
+	// from a Deployment, the JSONPath expression should be "{.availableReplicas}", not
+	// "{.status.availableReplicas}".
+	//
 	// +required
 	JSONPath string `json:"jsonPath"`
 }
