@@ -125,6 +125,9 @@ func ensureWork(
 			return err
 		}
 
+		// TOTO: We need to figure out if the targetCluster is the cluster we are going to migrate application to.
+		// If yes, we have to inject the preserved data to "clonedWorkload" with the label.
+
 		workMeta := metav1.ObjectMeta{
 			Name:        names.GenerateWorkName(clonedWorkload.GetKind(), clonedWorkload.GetName(), clonedWorkload.GetNamespace()),
 			Namespace:   workNamespace,
