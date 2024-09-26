@@ -21,7 +21,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"time"
 
 	policyv1alpha1 "github.com/karmada-io/karmada/pkg/apis/policy/v1alpha1"
 )
@@ -385,7 +384,7 @@ type FailoverHistoryItem struct {
 
 	// StartTime is the timestam when the failover occurred.
 	// +required
-	StartTime time.Time `json:"startTime"`
+	StartTime metav1.Time `json:"startTime"`
 
 	// ClustersBeforeFailover records the clusters where running the application before failover.
 	// +required
