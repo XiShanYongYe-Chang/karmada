@@ -7051,8 +7051,23 @@ func schema_pkg_apis_work_v1alpha2_GracefulEvictionTask(ref common.ReferenceCall
 							Ref:         ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
 						},
 					},
+					"clusterBeforeFailover": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ClusterBeforeFailover records the clusters where running the application before failover.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
-				Required: []string{"fromCluster", "reason", "producer"},
+				Required: []string{"fromCluster", "reason", "producer", "clusterBeforeFailover"},
 			},
 		},
 		Dependencies: []string{
@@ -7611,8 +7626,22 @@ func schema_pkg_apis_work_v1alpha2_TaskOptions(ref common.ReferenceCallback) com
 							},
 						},
 					},
+					"clustersBeforeFailover": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
-				Required: []string{"producer", "reason", "message", "gracePeriodSeconds", "suppressDeletion", "preservedLabelState"},
+				Required: []string{"producer", "reason", "message", "gracePeriodSeconds", "suppressDeletion", "preservedLabelState", "clustersBeforeFailover"},
 			},
 		},
 	}

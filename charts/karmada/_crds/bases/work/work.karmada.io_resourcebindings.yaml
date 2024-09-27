@@ -417,6 +417,12 @@ spec:
                   description: GracefulEvictionTask represents a graceful eviction
                     task.
                   properties:
+                    clusterBeforeFailover:
+                      description: ClusterBeforeFailover records the clusters where
+                        running the application before failover.
+                      items:
+                        type: string
+                      type: array
                     creationTimestamp:
                       description: |-
                         CreationTimestamp is a timestamp representing the server time when this object was
@@ -482,6 +488,7 @@ spec:
                         It can not co-exist with GracePeriodSeconds.
                       type: boolean
                   required:
+                  - clusterBeforeFailover
                   - fromCluster
                   - producer
                   - reason

@@ -194,6 +194,11 @@ func (in *GracefulEvictionTask) DeepCopyInto(out *GracefulEvictionTask) {
 		in, out := &in.CreationTimestamp, &out.CreationTimestamp
 		*out = (*in).DeepCopy()
 	}
+	if in.ClusterBeforeFailover != nil {
+		in, out := &in.ClusterBeforeFailover, &out.ClusterBeforeFailover
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 
@@ -488,6 +493,11 @@ func (in *TaskOptions) DeepCopyInto(out *TaskOptions) {
 		for key, val := range *in {
 			(*out)[key] = val
 		}
+	}
+	if in.clustersBeforeFailover != nil {
+		in, out := &in.clustersBeforeFailover, &out.clustersBeforeFailover
+		*out = make([]string, len(*in))
+		copy(*out, *in)
 	}
 	return
 }
