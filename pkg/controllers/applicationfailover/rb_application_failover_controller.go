@@ -17,16 +17,23 @@ limitations under the License.
 package applicationfailover
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/jsonpath"
 	"k8s.io/klog/v2"
 	"k8s.io/utils/ptr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
@@ -43,6 +50,7 @@ import (
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter"
 	"github.com/karmada-io/karmada/pkg/sharedcli/ratelimiterflag"
 	"github.com/karmada-io/karmada/pkg/util/helper"
+	"github.com/karmada-io/karmada/pkg/util/restmapper"
 )
 
 // RBApplicationFailoverControllerName is the controller name that will be used when reporting events.
@@ -157,13 +165,23 @@ func (c *RBApplicationFailoverController) evictBinding(binding *workv1alpha2.Res
 		switch binding.Spec.Failover.Application.PurgeMode {
 		case policyv1alpha1.Graciously:
 			if features.FeatureGate.Enabled(features.GracefulEviction) {
+				preservedLabelState, err := c.calculatePreservedLabelState(binding, cluster)
+				if err != nil {
+					return err
+				}
+
+				clustersBeforeFailover := make([]string, 0, len(binding.Spec.Clusters))
+				for _, targetCluster := range binding.Spec.Clusters {
+					clustersBeforeFailover = append(clustersBeforeFailover, targetCluster.Name)
+				}
+
 				binding.Spec.GracefulEvictCluster(cluster, workv1alpha2.NewTaskOptions(
 					workv1alpha2.WithProducer(RBApplicationFailoverControllerName),
 					workv1alpha2.WithReason(workv1alpha2.EvictionReasonApplicationFailure),
 					workv1alpha2.WithGracePeriodSeconds(binding.Spec.Failover.Application.GracePeriodSeconds),
+					workv1alpha2.WithPreservedLabelState(preservedLabelState),
+					workv1alpha2.WithClustersBeforeFailover(clustersBeforeFailover),
 				))
-				// TODO: Need to grab preservation from .status.aggregatedStatus according to .spec.failover.application.StatePreservation
-				// The demo code can be found at: https://github.com/RainbowMango/karmada/blob/4783b5210281f88f4baa07af4d7e7a7432c6d2b2/pkg/util/helper/workstatus.go#L220-L262
 			} else {
 				err := fmt.Errorf("GracefulEviction featureGate must be enabled when purgeMode is %s", policyv1alpha1.Graciously)
 				klog.Error(err)
@@ -171,8 +189,10 @@ func (c *RBApplicationFailoverController) evictBinding(binding *workv1alpha2.Res
 			}
 		case policyv1alpha1.Never:
 			if features.FeatureGate.Enabled(features.GracefulEviction) {
-				binding.Spec.GracefulEvictCluster(cluster, workv1alpha2.NewTaskOptions(workv1alpha2.WithProducer(RBApplicationFailoverControllerName),
-					workv1alpha2.WithReason(workv1alpha2.EvictionReasonApplicationFailure), workv1alpha2.WithSuppressDeletion(ptr.To[bool](true))))
+				binding.Spec.GracefulEvictCluster(cluster, workv1alpha2.NewTaskOptions(
+					workv1alpha2.WithProducer(RBApplicationFailoverControllerName),
+					workv1alpha2.WithReason(workv1alpha2.EvictionReasonApplicationFailure),
+					workv1alpha2.WithSuppressDeletion(ptr.To[bool](true))))
 			} else {
 				err := fmt.Errorf("GracefulEviction featureGate must be enabled when purgeMode is %s", policyv1alpha1.Never)
 				klog.Error(err)
@@ -266,4 +286,81 @@ func (c *RBApplicationFailoverController) bindingFilter(rb *workv1alpha2.Resourc
 		return false
 	}
 	return true
+}
+
+func (c *RBApplicationFailoverController) calculatePreservedLabelState(binding *workv1alpha2.ResourceBinding, cluster string) (map[string]string, error) {
+	targetStatus, exist := findAggregatedStatusByCluster(binding.Status.AggregatedStatus, cluster)
+	if !exist || targetStatus.Status == nil || targetStatus.Status.Raw == nil {
+		klog.Infof("[JUSTFORDEBUG] Waiting status")
+		klog.Errorf("The status of Cluster(%s) has not been collected yet.", cluster)
+		return nil, fmt.Errorf("the status of Cluster(%s) has not been collected yet", cluster)
+	}
+
+	statePreservationRules := binding.Spec.Failover.Application.StatePreservation.Rules
+	if statePreservationRules == nil || len(statePreservationRules) == 0 {
+		return nil, nil
+	}
+
+	results := make(map[string]string, len(statePreservationRules))
+	for _, rule := range statePreservationRules {
+		value, err := parseJsonValue(targetStatus, rule.JSONPath)
+		if err != nil {
+			klog.Errorf("Failed to parse value with jsonPath(%s) from status(%v), error: %v",
+				rule.JSONPath, targetStatus, err)
+			return nil, err
+		}
+		results[rule.AliasLabelName] = value
+	}
+	return results, nil
+}
+
+func parseJsonValue(targetStatus workv1alpha2.AggregatedStatusItem, jsonPath string) (string, error) {
+	klog.Infof("[JUSTFORDEBUG] Raw status: %v", targetStatus.Status.Raw)
+	template := fmt.Sprintf(`{ %s }`, jsonPath)
+	j := jsonpath.New(jsonPath)
+	j.AllowMissingKeys(false)
+	err := j.Parse(template)
+	if err != nil {
+		klog.Errorf("[JUSTFORDEBUG] Parse template %s failed. Error: %v.", template, err)
+		return "", err
+	}
+	buf := new(bytes.Buffer)
+
+	unmarshalled := make(map[string]interface{})
+	_ = json.Unmarshal(targetStatus.Status.Raw, &unmarshalled)
+	klog.Infof("[JUSTFORDEBUG] unmarshalled data: %v", unmarshalled)
+
+	err = j.Execute(buf, unmarshalled)
+	if err != nil {
+		klog.Errorf("[JUSTFORDEBUG] Execute template %s failed. Error: %v.", template, err)
+		return "", err
+	}
+	klog.Infof("[JUSTFORDEBUG] Get Result: %s", buf.String())
+	return buf.String(), nil
+}
+
+func findAggregatedStatusByCluster(aggregatedStatusItems []workv1alpha2.AggregatedStatusItem, cluster string) (workv1alpha2.AggregatedStatusItem, bool) {
+	if len(aggregatedStatusItems) == 0 {
+		return workv1alpha2.AggregatedStatusItem{}, false
+	}
+
+	for index, status := range aggregatedStatusItems {
+		if status.ClusterName == cluster {
+			return aggregatedStatusItems[index], true
+		}
+	}
+	return workv1alpha2.AggregatedStatusItem{}, false
+}
+
+func getUnstructuredObject(ctx context.Context, dynamicClient dynamic.Interface, restMapper meta.RESTMapper, objRef workv1alpha2.ObjectReference) (*unstructured.Unstructured, error) {
+	gvr, err := restmapper.GetGroupVersionResource(restMapper, schema.FromAPIVersionAndKind(objRef.APIVersion, objRef.Kind))
+	if err != nil {
+		return nil, err
+	}
+
+	object, err := dynamicClient.Resource(gvr).Namespace(objRef.Namespace).Get(ctx, objRef.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return object, nil
 }

@@ -293,6 +293,10 @@ type GracefulEvictionTask struct {
 	// Populated by the system. Read-only.
 	// +optional
 	CreationTimestamp *metav1.Time `json:"creationTimestamp,omitempty"`
+
+	// ClusterBeforeFailover records the clusters where running the application before failover.
+	// +required
+	ClusterBeforeFailover []string `json:"clusterBeforeFailover"`
 }
 
 // BindingSnapshot is a snapshot of a ResourceBinding or ClusterResourceBinding.

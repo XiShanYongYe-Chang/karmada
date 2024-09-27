@@ -20,6 +20,8 @@ import (
 	"context"
 	"strconv"
 
+	"k8s.io/apimachinery/pkg/util/sets"
+
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -48,6 +50,7 @@ func ensureWork(
 	var replicas int32
 	var conflictResolutionInBinding policyv1alpha1.ConflictResolution
 	var suspension *policyv1alpha1.Suspension
+	var gracefulEvictionTasks []workv1alpha2.GracefulEvictionTask
 	switch scope {
 	case apiextensionsv1.NamespaceScoped:
 		bindingObj := binding.(*workv1alpha2.ResourceBinding)
@@ -57,6 +60,7 @@ func ensureWork(
 		replicas = bindingObj.Spec.Replicas
 		conflictResolutionInBinding = bindingObj.Spec.ConflictResolution
 		suspension = bindingObj.Spec.Suspension
+		gracefulEvictionTasks = bindingObj.Spec.GracefulEvictionTasks
 	case apiextensionsv1.ClusterScoped:
 		bindingObj := binding.(*workv1alpha2.ClusterResourceBinding)
 		targetClusters = bindingObj.Spec.Clusters
@@ -65,6 +69,7 @@ func ensureWork(
 		replicas = bindingObj.Spec.Replicas
 		conflictResolutionInBinding = bindingObj.Spec.ConflictResolution
 		suspension = bindingObj.Spec.Suspension
+		gracefulEvictionTasks = bindingObj.Spec.GracefulEvictionTasks
 	}
 
 	targetClusters = mergeTargetClusters(targetClusters, requiredByBindingSnapshot)
@@ -125,8 +130,22 @@ func ensureWork(
 			return err
 		}
 
-		// TOTO: We need to figure out if the targetCluster is the cluster we are going to migrate application to.
+		// We need to figure out if the targetCluster is the cluster we are going to migrate application to.
 		// If yes, we have to inject the preserved data to "clonedWorkload" with the label.
+		for _, evictionTask := range gracefulEvictionTasks {
+			clusterSets := sets.NewString(evictionTask.ClusterBeforeFailover...)
+			if clusterSets.Has(targetCluster.Name) {
+				continue
+			}
+
+			if evictionTask.Replicas == nil || targetCluster.Replicas != *evictionTask.Replicas {
+				continue
+			}
+
+			for key, value := range evictionTask.PreservedLabelState {
+				util.MergeLabel(clonedWorkload, key, value)
+			}
+		}
 
 		workMeta := metav1.ObjectMeta{
 			Name:        names.GenerateWorkName(clonedWorkload.GetKind(), clonedWorkload.GetName(), clonedWorkload.GetNamespace()),

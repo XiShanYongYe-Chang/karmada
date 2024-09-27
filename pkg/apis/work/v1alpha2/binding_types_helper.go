@@ -25,7 +25,8 @@ type TaskOptions struct {
 	suppressDeletion   *bool
 	// preservedLabelState represents the application state information collected from the original cluster,
 	// and it will be injected into the new cluster in form of application labels.
-	preservedLabelState map[string]string
+	preservedLabelState    map[string]string
+	clustersBeforeFailover []string
 }
 
 // Option configures a TaskOptions
@@ -69,10 +70,23 @@ func WithGracePeriodSeconds(gracePeriodSeconds *int32) Option {
 	}
 }
 
-// WithSuppressDeletion sets the suppressDeletion for TaskOptions
+// WithSuppressDeletion sets the suppressDeletion for preservedLabelState
 func WithSuppressDeletion(suppressDeletion *bool) Option {
 	return func(o *TaskOptions) {
 		o.suppressDeletion = suppressDeletion
+	}
+}
+
+// WithPreservedLabelState sets the preservedLabelState for preservedLabelState
+func WithPreservedLabelState(preservedLabelState map[string]string) Option {
+	return func(o *TaskOptions) {
+		o.preservedLabelState = preservedLabelState
+	}
+}
+
+func WithClustersBeforeFailover(clustersBeforeFailover []string) Option {
+	return func(o *TaskOptions) {
+		o.clustersBeforeFailover = clustersBeforeFailover
 	}
 }
 
@@ -156,13 +170,14 @@ func (s *ResourceBindingSpec) GracefulEvictCluster(name string, options *TaskOpt
 	// build eviction task
 	evictingCluster := evictCluster.DeepCopy()
 	evictionTask := GracefulEvictionTask{
-		FromCluster:         evictingCluster.Name,
-		Reason:              options.reason,
-		Message:             options.message,
-		Producer:            options.producer,
-		GracePeriodSeconds:  options.gracePeriodSeconds,
-		SuppressDeletion:    options.suppressDeletion,
-		PreservedLabelState: options.preservedLabelState,
+		FromCluster:           evictingCluster.Name,
+		Reason:                options.reason,
+		Message:               options.message,
+		Producer:              options.producer,
+		GracePeriodSeconds:    options.gracePeriodSeconds,
+		SuppressDeletion:      options.suppressDeletion,
+		PreservedLabelState:   options.preservedLabelState,
+		ClusterBeforeFailover: options.clustersBeforeFailover,
 	}
 	if evictingCluster.Replicas > 0 {
 		evictionTask.Replicas = &evictingCluster.Replicas
