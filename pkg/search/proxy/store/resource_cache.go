@@ -115,16 +115,17 @@ func storageWithCacher(gvr schema.GroupVersionResource, multiNS *MultiNamespace,
 		indexers *cache.Indexers) (storage.Interface, factory.DestroyFunc, error) {
 		s := newStore(gvr, multiNS, newClientFunc, versioner, resourcePrefix)
 		cacherConfig := cacherstorage.Config{
-			Storage:        s,
-			Versioner:      versioner,
-			GroupResource:  storageConfig.GroupResource,
-			ResourcePrefix: resourcePrefix,
-			KeyFunc:        keyFunc,
-			GetAttrsFunc:   getAttrsFunc,
-			Indexers:       indexers,
-			NewFunc:        newFunc,
-			NewListFunc:    newListFunc,
-			Codec:          storageConfig.Codec,
+			Storage:             s,
+			Versioner:           versioner,
+			GroupResource:       storageConfig.GroupResource,
+			ResourcePrefix:      resourcePrefix,
+			KeyFunc:             keyFunc,
+			GetAttrsFunc:        getAttrsFunc,
+			Indexers:            indexers,
+			NewFunc:             newFunc,
+			NewListFunc:         newListFunc,
+			Codec:               storageConfig.Codec,
+			EventsHistoryWindow: cacherstorage.DefaultEventFreshDuration,
 		}
 		cacher, err := cacherstorage.NewCacherFromConfig(cacherConfig)
 		if err != nil {
