@@ -18,6 +18,7 @@ package options
 
 import (
 	"fmt"
+
 	"regexp"
 	"strings"
 	"time"
@@ -28,6 +29,7 @@ import (
 	componentbaseconfig "k8s.io/component-base/config"
 
 	"github.com/karmada-io/karmada/pkg/controllers/federatedhpa/config"
+	gracefulevictionconfig "github.com/karmada-io/karmada/pkg/controllers/gracefuleviction/config"
 	"github.com/karmada-io/karmada/pkg/features"
 	"github.com/karmada-io/karmada/pkg/sharedcli/profileflag"
 	"github.com/karmada-io/karmada/pkg/sharedcli/ratelimiterflag"
@@ -148,6 +150,8 @@ type Options struct {
 	FederatedResourceQuotaOptions FederatedResourceQuotaOptions
 	// FailoverOptions holds the Failover configurations.
 	FailoverOptions FailoverOptions
+	// GracefulEvictionOptions holds the GracefulEviction
+	GracefulEvictionOptions gracefulevictionconfig.GracefulEvictionOptions
 }
 
 // NewOptions builds an empty options.
@@ -234,6 +238,7 @@ func (o *Options) AddFlags(flags *pflag.FlagSet, allControllers, disabledByDefau
 	o.HPAControllerConfiguration.AddFlags(flags)
 	o.FederatedResourceQuotaOptions.AddFlags(flags)
 	o.FailoverOptions.AddFlags(flags)
+	o.GracefulEvictionOptions.AddFlags(flags)
 	features.FeatureGate.AddFlag(flags)
 }
 
