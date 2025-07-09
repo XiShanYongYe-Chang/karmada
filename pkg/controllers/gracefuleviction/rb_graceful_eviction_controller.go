@@ -19,6 +19,7 @@ package gracefuleviction
 import (
 	"context"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -30,10 +31,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
+	"github.com/karmada-io/karmada/pkg/controllers/gracefuleviction/config"
 	"github.com/karmada-io/karmada/pkg/sharedcli/ratelimiterflag"
+	"github.com/karmada-io/karmada/pkg/util/fedinformer/genericmanager"
 	"github.com/karmada-io/karmada/pkg/util/helper"
 )
 
@@ -44,6 +48,8 @@ const RBGracefulEvictionControllerName = "resource-binding-graceful-eviction-con
 type RBGracefulEvictionController struct {
 	client.Client
 	EventRecorder           record.EventRecorder
+	InformerManager         genericmanager.SingleClusterInformerManager
+	EvictionOptions         config.GracefulEvictionOptions
 	RateLimiterOptions      ratelimiterflag.Options
 	GracefulEvictionTimeout time.Duration
 }
@@ -121,9 +127,15 @@ func (c *RBGracefulEvictionController) SetupWithManager(mgr controllerruntime.Ma
 		GenericFunc: func(event.GenericEvent) bool { return false },
 	}
 
+	rateLimiter := NewGracefulEvictionRateLimiter[reconcile.Request](
+		c.InformerManager,
+		c.EvictionOptions,
+		c.RateLimiterOptions,
+	)
+
 	return controllerruntime.NewControllerManagedBy(mgr).
 		Named(RBGracefulEvictionControllerName).
 		For(&workv1alpha2.ResourceBinding{}, builder.WithPredicates(resourceBindingPredicateFn)).
-		WithOptions(controller.Options{RateLimiter: ratelimiterflag.DefaultControllerRateLimiter[controllerruntime.Request](c.RateLimiterOptions)}).
+		WithOptions(controller.Options{RateLimiter: rateLimiter}).
 		Complete(c)
 }
