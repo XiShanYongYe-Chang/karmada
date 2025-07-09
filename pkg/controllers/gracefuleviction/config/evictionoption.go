@@ -20,8 +20,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// GracefulEvictionOptions holds the options for the dynamic eviction rate limiter.
-// These options are used to control the behavior of the eviction queue based on the overall health of the clusters.
+// GracefulEvictionOptions holds the options that control the behavior of the graceful eviction queue based on the overall health of the clusters.
 type GracefulEvictionOptions struct {
 	// ResourceEvictionRate is the number of resources to be evicted per second.
 	// This is the default rate when the system is considered healthy.
