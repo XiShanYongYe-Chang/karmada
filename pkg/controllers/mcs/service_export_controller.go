@@ -458,7 +458,7 @@ func (c *ServiceExportController) removeOrphanWork(ctx context.Context, endpoint
 		return err
 	}
 
-	var errs []error
+	var orphanEndpointSliceWorks []*workv1alpha1.Work
 	for index := range collectedEpsWorkList.Items {
 		work := collectedEpsWorkList.Items[index]
 		if !util.IsWorkContains(work.Spec.Workload.Manifests, endpointSliceGVK) {
@@ -474,7 +474,53 @@ func (c *ServiceExportController) removeOrphanWork(ctx context.Context, endpoint
 			continue
 		}
 
-		err := cleanEndpointSliceWork(ctx, c.Client, &work)
+		orphanEndpointSliceWorks = append(orphanEndpointSliceWorks, &work)
+	}
+
+	if len(orphanEndpointSliceWorks) == 0 {
+		return nil
+	}
+
+	dynamicClusterClient, err := c.ClusterDynamicClientSetFunc(serviceExportKey.Cluster, c.Client, c.ClusterClientOption)
+	if err != nil {
+		klog.ErrorS(err, "Failed to build dynamic cluster client", "cluster", serviceExportKey.Cluster)
+		return err
+	}
+
+	// Deleting an EndpointSlice Work is a sensitive operation, as it may cause temporary service unavailability
+	// even if the resource will be recreated by a retry loop. To avoid accidental disruption, we perform a double-check
+	// by directly querying the member cluster's apiserver to confirm that the EndpointSlice resource is truly absent
+	// before proceeding with deletion.
+	var errs []error
+	for index := range orphanEndpointSliceWorks {
+		orphanEpsWork := orphanEndpointSliceWorks[index]
+
+		// This check avoids a potential panic due to a nil reference when accessing the Work Manifests.
+		// It can also avoid annoying false positive lint checks.
+		if len(orphanEpsWork.Spec.Workload.Manifests) == 0 {
+			// never reach here
+			continue
+		}
+		orphanEps := &unstructured.Unstructured{}
+		if err := orphanEps.UnmarshalJSON(orphanEpsWork.Spec.Workload.Manifests[0].Raw); err != nil {
+			klog.ErrorS(err, "Failed to unmarshal workload from work", "namespace", orphanEpsWork.GetNamespace(), "name", orphanEpsWork.GetName())
+			errs = append(errs, err)
+			continue
+		}
+
+		_, err = dynamicClusterClient.DynamicClientSet.Resource(endpointSliceGVR).Namespace(orphanEps.GetNamespace()).Get(ctx, orphanEps.GetName(), metav1.GetOptions{})
+		if err == nil {
+			// The target EndpointSlice exists, so we skip the deletion.
+			klog.Warningf("Skip deleting EndpointSlice Work as target EndpointSlice(%s/%s) exist in the cluster %s",
+				orphanEps.GetNamespace(), orphanEpsWork.GetName(), serviceExportKey.Cluster)
+			continue
+		}
+		if !apierrors.IsNotFound(err) {
+			errs = append(errs, err)
+			continue
+		}
+
+		err := cleanEndpointSliceWork(ctx, c.Client, orphanEpsWork)
 		if err != nil {
 			errs = append(errs, err)
 		}
