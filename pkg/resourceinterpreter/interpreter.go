@@ -18,8 +18,10 @@ package resourceinterpreter
 
 import (
 	"context"
+	"errors"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	corev1 "k8s.io/client-go/listers/core/v1"
@@ -32,12 +34,14 @@ import (
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/customized/webhook/request"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/default/native"
 	"github.com/karmada-io/karmada/pkg/resourceinterpreter/default/thirdparty"
+	"github.com/karmada-io/karmada/pkg/util"
 	"github.com/karmada-io/karmada/pkg/util/fedinformer/genericmanager"
+	"github.com/karmada-io/karmada/pkg/util/helper"
 )
 
 // ResourceInterpreter manages both default and customized webhooks to interpret custom resource structure.
 type ResourceInterpreter interface {
-	// Start starts running the component and will never stop running until the context is closed or an error occurs.
+	// Start initializes the resource interpreter and performs cache synchronization.
 	Start(ctx context.Context) (err error)
 
 	// HookEnabled tells if any hook exist for specific resource type and operation.
@@ -48,6 +52,15 @@ type ResourceInterpreter interface {
 
 	// ReviseReplica revises the replica of the given object.
 	ReviseReplica(object *unstructured.Unstructured, replica int64) (*unstructured.Unstructured, error)
+
+	// GetComponents extracts the resource requirements for multiple components from the given object.
+	// This hook is designed for CRDs with multiple components (e.g., FlinkDeployment), but can
+	// also be used for single-component resources like Deployment.
+	// If implemented, the controller will use this hook to obtain per-component replica and resource
+	// requirements, and will not call GetReplicas.
+	// If not implemented, the controller will fall back to GetReplicas for backward compatibility.
+	// This hook will only be called when the feature gate 'MultiplePodTemplatesScheduling' is enabled.
+	GetComponents(object *unstructured.Unstructured) (components []workv1alpha2.ComponentRequirements, err error)
 
 	// Retain returns the objects that based on the "desired" object but with values retained from the "observed" object.
 	Retain(desired *unstructured.Unstructured, observed *unstructured.Unstructured) (retained *unstructured.Unstructured, err error)
@@ -85,13 +98,16 @@ type customResourceInterpreterImpl struct {
 	defaultInterpreter      *native.DefaultInterpreter
 }
 
-// Start starts running the component and will never stop running until the context is closed or an error occurs.
-func (i *customResourceInterpreterImpl) Start(ctx context.Context) (err error) {
-	klog.Infof("Starting custom resource interpreter.")
+// Start initializes all interpreters and load all ResourceInterpreterCustomization and
+// ResourceInterpreterWebhookConfiguration configurations into the cache.
+// It is recommended to be called before all controllers. After called, the resource interpreter
+// will be ready to interpret custom resources.
+func (i *customResourceInterpreterImpl) Start(_ context.Context) (err error) {
+	klog.Infoln("Starting resource interpreter.")
 
 	i.customizedInterpreter, err = webhook.NewCustomizedInterpreter(i.informer, i.serviceLister)
 	if err != nil {
-		return
+		return err
 	}
 	i.configurableInterpreter = declarative.NewConfigurableInterpreter(i.informer)
 
@@ -100,8 +116,12 @@ func (i *customResourceInterpreterImpl) Start(ctx context.Context) (err error) {
 
 	i.informer.Start()
 	i.informer.WaitForCacheSync()
-	<-ctx.Done()
-	klog.Infof("Stopped as context canceled.")
+
+	if err = i.loadConfig(); err != nil {
+		return err
+	}
+
+	klog.Infoln("Resource interpreter started.")
 	return nil
 }
 
@@ -178,6 +198,19 @@ func (i *customResourceInterpreterImpl) ReviseReplica(object *unstructured.Unstr
 	}
 
 	return i.defaultInterpreter.ReviseReplica(object, replica)
+}
+
+// GetComponents returns the requirements for each component of the given object.
+// This method is intended to extract per-component replica and resource requirements,
+// especially for resources that define multiple components (e.g., CRDs with multiple pod templates).
+func (i *customResourceInterpreterImpl) GetComponents(object *unstructured.Unstructured) ([]workv1alpha2.ComponentRequirements, error) {
+	if object == nil {
+		return nil, errors.New("nil object")
+	}
+
+	// TODO(@RainbowMango): Implement GetComponents for extracting per-component replica and resource requirements.
+	// Follow up tracked by: https://github.com/karmada-io/karmada/issues/6641
+	return nil, errors.New("interface GetComponents not implemented yet")
 }
 
 // Retain returns the objects that based on the "desired" object but with values retained from the "observed" object.
@@ -338,4 +371,47 @@ func (i *customResourceInterpreterImpl) InterpretHealth(object *unstructured.Uns
 
 	healthy, err = i.defaultInterpreter.InterpretHealth(object)
 	return
+}
+
+// loadConfig loads the full set of ResourceInterpreterCustomization and
+// ResourceInterpreterWebhookConfiguration configurations into the cache. It avoids resource interpreter
+// parsing errors when the resource interpreter starts and the cache is not synchronized.
+func (i *customResourceInterpreterImpl) loadConfig() error {
+	customizations, err := i.informer.Lister(util.ResourceInterpreterCustomizationsGVR).List(labels.Everything())
+	if err != nil {
+		klog.Errorf("Failed to list resourceinterpretercustomizations: %v", err)
+		return err
+	}
+	klog.V(5).Infof("Found %d resourceinterpretercustomizations", len(customizations))
+
+	declareConfigs := make([]*configv1alpha1.ResourceInterpreterCustomization, len(customizations))
+	for index, c := range customizations {
+		config := &configv1alpha1.ResourceInterpreterCustomization{}
+		if err = helper.ConvertToTypedObject(c, config); err != nil {
+			klog.Errorf("Failed to convert resourceinterpretercustomization: %v", err)
+			return err
+		}
+		declareConfigs[index] = config
+	}
+	i.configurableInterpreter.LoadConfig(declareConfigs)
+
+	webhooks, err := i.informer.Lister(util.ResourceInterpreterWebhookConfigurationsGVR).List(labels.Everything())
+	if err != nil {
+		klog.Errorf("Failed to list resourceinterpreterwebhookconfigurations: %v", err)
+		return err
+	}
+	klog.V(5).Infof("Found %d resourceinterpreterwebhookconfigurations", len(webhooks))
+
+	webhookConfigs := make([]*configv1alpha1.ResourceInterpreterWebhookConfiguration, len(webhooks))
+	for index, c := range webhooks {
+		config := &configv1alpha1.ResourceInterpreterWebhookConfiguration{}
+		if err = helper.ConvertToTypedObject(c, config); err != nil {
+			klog.Errorf("Failed to convert resourceinterpreterwebhookconfiguration: %v", err)
+			return err
+		}
+		webhookConfigs[index] = config
+	}
+	i.customizedInterpreter.LoadConfig(webhookConfigs)
+
+	return nil
 }

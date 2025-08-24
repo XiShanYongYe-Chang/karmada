@@ -34,6 +34,7 @@ import (
 	logsv1 "k8s.io/component-base/logs/api/v1"
 	"k8s.io/component-base/term"
 	"k8s.io/klog/v2"
+	"k8s.io/utils/ptr"
 	controllerruntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/config"
@@ -225,6 +226,7 @@ func run(ctx context.Context, opts *options.Options) error {
 				clusterv1alpha1.SchemeGroupVersion.WithKind("Cluster").GroupKind().String(): opts.ConcurrentClusterSyncs,
 			},
 			CacheSyncTimeout: opts.ClusterCacheSyncTimeout.Duration,
+			UsePriorityQueue: ptr.To(features.FeatureGate.Enabled(features.ControllerPriorityQueue)),
 		},
 		NewCache: func(config *rest.Config, opts cache.Options) (cache.Cache, error) {
 			opts.DefaultTransform = fedinformer.StripUnusedFields
@@ -271,10 +273,9 @@ func setupControllers(ctx context.Context, mgr controllerruntime.Manager, opts *
 	sharedFactory.WaitForCacheSync(ctx.Done())
 
 	resourceInterpreter := resourceinterpreter.NewResourceInterpreter(controlPlaneInformerManager, serviceLister)
-	if err := mgr.Add(resourceInterpreter); err != nil {
-		return fmt.Errorf("failed to setup custom resource interpreter: %w", err)
+	if err := resourceInterpreter.Start(ctx); err != nil {
+		return fmt.Errorf("failed to start resource interpreter: %w", err)
 	}
-
 	rateLimiterGetter := util.GetClusterRateLimiterGetter().SetDefaultLimits(opts.ClusterAPIQPS, opts.ClusterAPIBurst)
 	clusterClientOption := &util.ClientOption{RateLimiterGetter: rateLimiterGetter.GetRateLimiter}
 

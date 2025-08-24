@@ -224,7 +224,6 @@ func (c *EndpointSliceCollectController) registerInformersAndStart(cluster *clus
 		return nil
 	}(); err != nil {
 		klog.ErrorS(err, "Failed to sync cache for cluster", "cluster", cluster.Name)
-		c.InformerManager.Stop(cluster.Name)
 		return err
 	}
 
@@ -415,13 +414,22 @@ func getEndpointSliceWorkMeta(ctx context.Context, c client.Client, ns string, w
 		return metav1.ObjectMeta{}, err
 	}
 
+	existFinalizers := existWork.GetFinalizers()
+	finalizersToAdd := []string{util.MCSEndpointSliceDispatchControllerFinalizer}
+	newFinalizers := util.MergeFinalizers(existFinalizers, finalizersToAdd)
+
 	ls := map[string]string{
 		util.MultiClusterServiceNamespaceLabel: endpointSlice.GetNamespace(),
 		util.MultiClusterServiceNameLabel:      endpointSlice.GetLabels()[discoveryv1.LabelServiceName],
 		util.EndpointSliceWorkManagedByLabel:   util.MultiClusterServiceKind,
 	}
 	if existWork.Labels == nil || (err != nil && apierrors.IsNotFound(err)) {
-		workMeta := metav1.ObjectMeta{Name: workName, Namespace: ns, Labels: ls}
+		workMeta := metav1.ObjectMeta{
+			Name:       workName,
+			Namespace:  ns,
+			Labels:     ls,
+			Finalizers: newFinalizers,
+		}
 		return workMeta, nil
 	}
 
@@ -436,7 +444,7 @@ func getEndpointSliceWorkMeta(ctx context.Context, c client.Client, ns string, w
 		Name:       workName,
 		Namespace:  ns,
 		Labels:     ls,
-		Finalizers: []string{util.MCSEndpointSliceDispatchControllerFinalizer},
+		Finalizers: newFinalizers,
 	}, nil
 }
 

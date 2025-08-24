@@ -20,7 +20,9 @@ import (
 	"time"
 
 	discoveryv1 "k8s.io/api/discovery/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	configv1alpha1 "github.com/karmada-io/karmada/pkg/apis/config/v1alpha1"
 	workv1alpha2 "github.com/karmada-io/karmada/pkg/apis/work/v1alpha2"
 )
 
@@ -216,6 +218,11 @@ const (
 	CompletionsField = "completions"
 )
 
+const (
+	// QuotaExceededReason is a unique reason to describe QuotaExceeded events
+	QuotaExceededReason metav1.StatusReason = "QuotaExceeded"
+)
+
 // ContextKey is the key of context.
 type ContextKey string
 
@@ -232,6 +239,15 @@ const (
 var (
 	// EndpointSliceGVK is the GroupVersionKind of K8s native EndpointSlice.
 	EndpointSliceGVK = discoveryv1.SchemeGroupVersion.WithKind("EndpointSlice")
+)
+
+// Define resource group version resource.
+var (
+	// ResourceInterpreterCustomizationsGVR is the GroupVersionResource of ResourceInterpreterCustomizations.
+	ResourceInterpreterCustomizationsGVR = configv1alpha1.SchemeGroupVersion.WithResource("resourceinterpretercustomizations")
+
+	// ResourceInterpreterWebhookConfigurationsGVR is the GroupVersionResource of ResourceInterpreterWebhookConfigurations.
+	ResourceInterpreterWebhookConfigurationsGVR = configv1alpha1.SchemeGroupVersion.WithResource("resourceinterpreterwebhookconfigurations")
 )
 
 const (
