@@ -1,0 +1,43 @@
+name: dependency-jobtemplate-configmap
+description: Test GetDependencies with jobTemplate (not broadcastJobTemplate)
+operation: InterpretDependency
+
+desiredInput:
+  apiVersion: apps.kruise.io/v1alpha1
+  kind: AdvancedCronJob
+  metadata:
+    name: sample
+    namespace: test-acj
+  spec:
+    schedule: "*/5 * * * *"
+    template:
+      jobTemplate:
+        spec:
+          template:
+            spec:
+              restartPolicy: OnFailure
+              containers:
+                - name: worker
+                  image: worker:v1
+                  env:
+                    - name: CONFIG_PATH
+                      valueFrom:
+                        configMapKeyRef:
+                          name: worker-config
+                          key: path
+              volumes:
+                - name: shared-data
+                  configMap:
+                    name: shared-config
+
+expectedOutput:
+  dependencies:
+    - apiVersion: v1
+      kind: ConfigMap
+      name: shared-config
+      namespace: test-acj
+    - apiVersion: v1
+      kind: ConfigMap
+      name: worker-config
+      namespace: test-acj
+

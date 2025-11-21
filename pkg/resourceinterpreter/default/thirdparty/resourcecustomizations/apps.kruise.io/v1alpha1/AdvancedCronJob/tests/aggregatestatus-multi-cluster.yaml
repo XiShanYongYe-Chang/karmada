@@ -1,0 +1,90 @@
+name: aggregate-status-multi-cluster
+description: Test AggregateStatus merging active jobs from multiple clusters
+operation: AggregateStatus
+
+desiredInput:
+  apiVersion: apps.kruise.io/v1alpha1
+  kind: AdvancedCronJob
+  metadata:
+    name: sample
+    namespace: test-acj
+  spec:
+    schedule: "*/2 * * * *"
+    template:
+      broadcastJobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx:alpine
+
+statusInput:
+  - clusterName: member1
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+          uid: f96013ef-2869-49d7-adf3-8f7231cc5e2a
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:30:00Z"
+  - clusterName: member2
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+          uid: d1f3c194-d650-4cce-b23d-307a445bb92e
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:30:00Z"
+  - clusterName: member3
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378100
+          namespace: test-acj
+          uid: a2b3c4d5-e6f7-8901-2345-6789abcdef01
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:31:00Z"
+
+expectedOutput:
+  aggregatedStatus:
+    apiVersion: apps.kruise.io/v1alpha1
+    kind: AdvancedCronJob
+    metadata:
+      name: sample
+      namespace: test-acj
+    spec:
+      schedule: "*/2 * * * *"
+      template:
+        broadcastJobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: nginx
+                    image: nginx:alpine
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+          uid: f96013ef-2869-49d7-adf3-8f7231cc5e2a
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+          uid: d1f3c194-d650-4cce-b23d-307a445bb92e
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378100
+          namespace: test-acj
+          uid: a2b3c4d5-e6f7-8901-2345-6789abcdef01
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:31:00Z"
+

@@ -1,0 +1,58 @@
+name: aggregate-status-single-cluster
+description: Test AggregateStatus with status from single cluster
+operation: AggregateStatus
+
+desiredInput:
+  apiVersion: apps.kruise.io/v1alpha1
+  kind: AdvancedCronJob
+  metadata:
+    name: sample
+    namespace: test-acj
+  spec:
+    schedule: "*/2 * * * *"
+    template:
+      broadcastJobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx:alpine
+
+statusInput:
+  - clusterName: member1
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:30:00Z"
+
+expectedOutput:
+  aggregatedStatus:
+    apiVersion: apps.kruise.io/v1alpha1
+    kind: AdvancedCronJob
+    metadata:
+      name: sample
+      namespace: test-acj
+    spec:
+      schedule: "*/2 * * * *"
+      template:
+        broadcastJobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: nginx
+                    image: nginx:alpine
+    status:
+      active:
+        - apiVersion: apps.kruise.io/v1alpha1
+          kind: BroadcastJob
+          name: sample-1681378080
+          namespace: test-acj
+      type: BroadcastJob
+      lastScheduleTime: "2023-04-13T09:30:00Z"
+

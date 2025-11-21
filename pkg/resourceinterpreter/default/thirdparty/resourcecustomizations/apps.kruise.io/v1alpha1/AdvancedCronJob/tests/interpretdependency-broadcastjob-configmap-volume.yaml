@@ -1,0 +1,32 @@
+name: dependency-broadcastjob-configmap-volume
+description: Test GetDependencies with broadcastJobTemplate using ConfigMap in volume
+operation: InterpretDependency
+
+desiredInput:
+  apiVersion: apps.kruise.io/v1alpha1
+  kind: AdvancedCronJob
+  metadata:
+    name: sample
+    namespace: test-acj
+  spec:
+    schedule: "*/2 * * * *"
+    template:
+      broadcastJobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx:alpine
+              volumes:
+                - name: config-volume
+                  configMap:
+                    name: my-config
+
+expectedOutput:
+  dependencies:
+    - apiVersion: v1
+      kind: ConfigMap
+      name: my-config
+      namespace: test-acj
+

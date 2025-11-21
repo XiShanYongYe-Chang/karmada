@@ -1,0 +1,43 @@
+name: aggregate-status-empty-items
+description: Test AggregateStatus with empty statusItems list
+operation: AggregateStatus
+
+desiredInput:
+  apiVersion: apps.kruise.io/v1alpha1
+  kind: AdvancedCronJob
+  metadata:
+    name: sample
+    namespace: test-acj
+  spec:
+    schedule: "*/2 * * * *"
+    template:
+      broadcastJobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+                - name: nginx
+                  image: nginx:alpine
+
+statusInput: []
+
+expectedOutput:
+  aggregatedStatus:
+    apiVersion: apps.kruise.io/v1alpha1
+    kind: AdvancedCronJob
+    metadata:
+      name: sample
+      namespace: test-acj
+    spec:
+      schedule: "*/2 * * * *"
+      template:
+        broadcastJobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: nginx
+                    image: nginx:alpine
+    status:
+      type: ""
+
