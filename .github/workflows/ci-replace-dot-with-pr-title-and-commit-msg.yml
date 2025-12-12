@@ -1,0 +1,74 @@
+name: 'Rename Dependabot PR and Body'
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  rename:
+    name: Rename PR Title and Body
+    # if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Still need write permission
+      
+    steps:
+      - name: Prepare new Title and Body
+        id: pr_details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // 1. Get the current title and body
+            const currentTitle = context.payload.pull_request.title;
+            const currentBody = context.payload.pull_request.body;
+            
+            // 2. Define the cleanup function
+            // This function removes the @ symbol from:
+            // - scoped package names: '@changesets/cli' -> 'changesets/cli'
+            // - GitHub usernames: '@xx-abc' -> 'xx-abc'
+            // - package names with hyphens: '@angular-devkit/build-angular' -> 'angular-devkit/build-angular'
+            // We use a global regex (g) to catch all instances in the body.
+            const cleanupText = (text) => {
+              if (!text) return '';
+              // Regex: matches @ followed by one or more word characters or hyphens
+              // [\w-]+ matches word characters (a-z, A-Z, 0-9, _) and hyphens
+              // This handles both '@scope/package' and '@username' patterns
+              return text.replace(/@([\w-]+)/g, '$1'); 
+            };
+            
+            // 3. Apply the cleanup function
+            const newTitle = cleanupText(currentTitle);
+            const newBody = cleanupText(currentBody);
+
+            // Log the results
+            console.log(`Original Title: ${currentTitle}`);
+            console.log(`New Title:      ${newTitle}`);
+            console.log(`Original Body (snippet): ${currentBody.substring(0, 50)}...`);
+            console.log(`New Body (snippet): ${newBody.substring(0, 50)}...`);
+
+            // 4. Set output variables
+            core.setOutput('new_title', newTitle);
+            core.setOutput('new_body', newBody);
+            core.setOutput('pr_number', context.payload.pull_request.number);
+            
+      - name: Update PR Title and Body
+        # Only run if the title or body actually changed
+        if: steps.pr_details.outputs.new_title != github.event.pull_request.title || steps.pr_details.outputs.new_body != github.event.pull_request.body
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = ${{ steps.pr_details.outputs.pr_number }};
+            const newTitle = `${{ steps.pr_details.outputs.new_title }}`;
+            const newBody = `${{ steps.pr_details.outputs.new_body }}`;
+            
+            // Use the GitHub REST API to update the PR, including the new body
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              title: newTitle,
+              body: newBody, // <--- This line updates the PR message
+            });
+            
+            console.log(`Successfully updated PR #${prNumber} title and body.`);
