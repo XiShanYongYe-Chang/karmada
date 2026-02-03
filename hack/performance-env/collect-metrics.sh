@@ -14,25 +14,35 @@ PROMETHEUS_ENDPOINT="${PROMETHEUS_ENDPOINT:-http://localhost:31801}"
 OUTPUT_FILE="${OUTPUT_FILE:-./karmada-metrics.json}"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 
+# Time range configuration for metrics collection
+# Default: collect data for the last 5 minutes with 15s step
+END_TIME="${END_TIME:-$(date +%s)}"
+START_TIME="${START_TIME:-$(($END_TIME - 300))}"
+STEP="${STEP:-15s}"
+
 echo "start to collect Karmada performance metrics"
 
 # ============================================
 # General query function
-# Function: Query Prometheus metrics, ensure always return valid numeric values
+# Function: Query Prometheus metrics range, return array of [timestamp, value]
 # Parameters: $1 - PromQL query statement
-# Return: Query result (numeric), if failed or no data, return "0"
+# Return: JSON array of values, e.g. [[1678000000,"10"],[1678000015,"20"]], if failed return []
 # ============================================
 function query_prometheus() {
     local query="$1"
 
-    # execute query and extract the value of the first result
-    local result=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query" \
-        --data-urlencode "query=${query}" 2>/dev/null | \
-        jq -r '.data.result[0].value[1] // "0"' 2>/dev/null)
+    # execute query_range and extract the values array of the first result
+    # use -c for compact output
+    local result=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query_range" \
+        --data-urlencode "query=${query}" \
+        --data-urlencode "start=${START_TIME}" \
+        --data-urlencode "end=${END_TIME}" \
+        --data-urlencode "step=${STEP}" 2>/dev/null | \
+        jq -c '.data.result[0].values // []' 2>/dev/null)
 
-    # handle null, empty value and non-numeric cases, ensure all call points can get valid numeric values
-    if [ -z "${result}" ] || [ "${result}" == "null" ] || ! [[ "${result}" =~ ^[0-9.eE+-]+$ ]]; then
-        result="0"
+    # handle empty result
+    if [ -z "${result}" ] || [ "${result}" == "null" ]; then
+        result="[]"
     fi
 
     echo "${result}"
@@ -52,9 +62,10 @@ function collect_grouped_metrics() {
     local label_name="$2"
     local collect_func="$3"
 
-    # get all active instances
+    # get all active instances at END_TIME
     local instances=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query" \
-        --data-urlencode "query=count by (${label_name}) (${metric_name})" 2>/dev/null | \
+        --data-urlencode "query=count by (${label_name}) (${metric_name})" \
+        --data-urlencode "time=${END_TIME}" 2>/dev/null | \
         jq -r ".data.result[].metric.${label_name}" 2>/dev/null | sort -u)
 
     if [ -z "${instances}" ]; then
@@ -720,9 +731,10 @@ function collect_component_resources_by_pod() {
     local namespace="${2:-karmada-system}"
     local container_name="${3:-$component_name}"
 
-    # get all pod names of the component
+    # get all pod names of the component at END_TIME
     local pods=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query" \
-        --data-urlencode "query=container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=~\"${component_name}-.+\", container=\"${container_name}\"}" 2>/dev/null | \
+        --data-urlencode "query=container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=~\"${component_name}-.+\", container=\"${container_name}\"}" \
+        --data-urlencode "time=${END_TIME}" 2>/dev/null | \
         jq -r '.data.result[].metric.pod' 2>/dev/null | sort -u)
 
     if [ -z "${pods}" ]; then
@@ -856,14 +868,23 @@ function main() {
 
     export TIMESTAMP
     export PROMETHEUS_ENDPOINT
+    export START_TIME
+    export END_TIME
+    export STEP
     
     # combine into a complete JSON (using jq to ensure correct format)
     echo "${match_metrics}" "${apply_metrics}" "${binding_metrics}" "${work_metrics}" "${cluster_metrics}" "${runtime_metrics}" "${scheduler_metrics}" "${workqueue_metrics}" "${rest_client_metrics}" "${component_metrics}" | \
-    jq -s --arg ts "${TIMESTAMP}" --arg endpoint "${PROMETHEUS_ENDPOINT}" '{
+    jq -s --arg ts "${TIMESTAMP}" --arg endpoint "${PROMETHEUS_ENDPOINT}" \
+          --arg start "${START_TIME}" --arg end_time "${END_TIME}" --arg step "${STEP}" '{
         metadata: {
             timestamp: $ts,
             collection_time: (now | todate),
             prometheus_endpoint: $endpoint,
+            query_range: {
+                start: $start,
+                "end": $end_time,
+                step: $step
+            },
             controllers: ["detector", "binding", "work", "cluster"],
             includes_controller_runtime: true,
             includes_scheduler: true,

@@ -27,11 +27,15 @@ export HOST_CLUSTER_NAME=${HOST_CLUSTER_NAME:-"karmada-host"}
 export PROMETHEUS_PORT=${PROMETHEUS_PORT:-31801}
 export PROMETHEUS_ENDPOINT="http://localhost:${PROMETHEUS_PORT}"
 
+start_time=""
+end_time=""
+
 mkdir -p "${OUTPUT_DIR}"
 
 function run_performance_test() {
     echo "start to run ClusterLoader2 performance test"
     
+    rm -rf perf-tests
     git clone git@github.com:kubernetes/perf-tests.git
 
     cp "${REPO_ROOT}/hack/performance-env/clusterloader2/config.yaml" "${REPO_ROOT}/perf-tests/clusterloader2/config.yaml"
@@ -67,6 +71,8 @@ function start_prometheus_forward() {
     fi
 }
 
+trap cleanup EXIT
+
 function cleanup() {
     echo "stop to forward Prometheus port"
     if [ -f "${OUTPUT_DIR}/prometheus-forward-${PROMETHEUS_PORT}.pid" ]; then
@@ -83,17 +89,15 @@ function cleanup() {
 
 "${REPO_ROOT}"/hack/local-up-performance-env.sh
 start_prometheus_forward
-run_performance_test
-for i in {1..3}; do
-    echo "start to collect metrics ( $i times, total 3 times)..."
-    export OUTPUT_FILE="karmada-metrics-${i}.json"
-    "${REPO_ROOT}"/hack/performance-env/collect-metrics.sh
-    
-    if [ $i -lt 3 ]; then
-        echo "wait 60 seconds to collect next time..."
-        sleep 60
-    fi
-done
-cleanup
 
+start_time=$(date +%s)
+run_performance_test
+end_time=$(date +%s)
+
+export START_TIME=${start_time}
+export END_TIME=${end_time}
+export STEP=${STEP:-15s}
+"${REPO_ROOT}"/hack/performance-env/collect-metrics.sh
+
+cleanup
 echo "✅ performance test is completed"

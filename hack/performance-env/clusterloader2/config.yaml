@@ -2,7 +2,7 @@ name: test
 
 namespace:
   number: 10
-  deleteAutomanagedNamespaces: false
+  deleteAutomanagedNamespaces: true
 
 tuningSets:
 - name: Uniform1qps
