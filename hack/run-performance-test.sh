@@ -92,6 +92,7 @@ start_prometheus_forward
 
 start_time=$(date +%s)
 run_performance_test
+sleep 5m
 end_time=$(date +%s)
 
 export START_TIME=${start_time}
