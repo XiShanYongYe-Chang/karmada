@@ -61,6 +61,7 @@ function collect_grouped_metrics() {
     local metric_name="$1"
     local label_name="$2"
     local collect_func="$3"
+    local exclude_pattern="${4:-}"
 
     # get all active instances at END_TIME
     local instances=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query" \
@@ -77,6 +78,11 @@ function collect_grouped_metrics() {
     local by_instance_json=""
     local first=true
     for instance in ${instances}; do
+        # Apply exclude pattern if provided
+        if [ -n "${exclude_pattern}" ] && [[ "${instance}" =~ ${exclude_pattern} ]]; then
+            continue
+        fi
+
         if [ "${first}" = true ]; then
             first=false
         else
@@ -101,19 +107,19 @@ EOF
 function collect_policy_match_metrics() {
     # P50 latency
     local match_p50=$(query_prometheus \
-        'histogram_quantile(0.50, rate(resource_match_policy_duration_seconds_bucket[5m]))')
+        'histogram_quantile(0.50, rate(resource_match_policy_duration_seconds_bucket[1m]))')
     
     # P90 latency
     local match_p90=$(query_prometheus \
-        'histogram_quantile(0.90, rate(resource_match_policy_duration_seconds_bucket[5m]))')
+        'histogram_quantile(0.90, rate(resource_match_policy_duration_seconds_bucket[1m]))')
     
     # P99 latency
     local match_p99=$(query_prometheus \
-        'histogram_quantile(0.99, rate(resource_match_policy_duration_seconds_bucket[5m]))')
+        'histogram_quantile(0.99, rate(resource_match_policy_duration_seconds_bucket[1m]))')
 
     # matching rate (per second)
     local match_rate=$(query_prometheus \
-        'rate(resource_match_policy_duration_seconds_count[5m])')
+        'rate(resource_match_policy_duration_seconds_count[1m])')
     
     # total matching count (aggregate all instances)
     local match_total=$(query_prometheus \
@@ -139,27 +145,23 @@ EOF
 function collect_policy_apply_metrics() {
     # successful P50 latency
     local apply_success_p50=$(query_prometheus \
-        'histogram_quantile(0.50, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.50, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P90 latency
     local apply_success_p90=$(query_prometheus \
-        'histogram_quantile(0.90, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.90, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P99 latency
     local apply_success_p99=$(query_prometheus \
-        'histogram_quantile(0.99, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.99, rate(resource_apply_policy_duration_seconds_bucket{result="success"}[1m]))')
 
     # successful rate
     local apply_success_rate=$(query_prometheus \
-        'rate(resource_apply_policy_duration_seconds_count{result="success"}[5m])')
+        'rate(resource_apply_policy_duration_seconds_count{result="success"}[1m])')
     
     # failed rate
     local apply_error_rate=$(query_prometheus \
-        'rate(resource_apply_policy_duration_seconds_count{result="error"}[5m])')
-    
-    # successful rate percentage
-    local apply_success_percent=$(query_prometheus \
-        'sum(rate(resource_apply_policy_duration_seconds_count{result="success"}[5m])) / sum(rate(resource_apply_policy_duration_seconds_count[5m])) * 100')
+        'rate(resource_apply_policy_duration_seconds_count{result="error"}[1m])')
     
     # total apply count (success, aggregate all instances)
     local apply_success_total=$(query_prometheus \
@@ -188,9 +190,6 @@ function collect_policy_apply_metrics() {
                 "rate_per_second": ${apply_error_rate},
                 "total_count": ${apply_error_total}
             }
-        },
-        "summary": {
-            "success_rate_percent": ${apply_success_percent}
         }
     }
 }
@@ -200,27 +199,23 @@ EOF
 function collect_binding_sync_metrics() {
     # successful P50 latency
     local binding_p50=$(query_prometheus \
-        'histogram_quantile(0.50, rate(binding_sync_work_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.50, rate(binding_sync_work_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P90 latency
     local binding_p90=$(query_prometheus \
-        'histogram_quantile(0.90, rate(binding_sync_work_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.90, rate(binding_sync_work_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P99 latency
     local binding_p99=$(query_prometheus \
-        'histogram_quantile(0.99, rate(binding_sync_work_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.99, rate(binding_sync_work_duration_seconds_bucket{result="success"}[1m]))')
 
     # successful rate
     local binding_success_rate=$(query_prometheus \
-        'rate(binding_sync_work_duration_seconds_count{result="success"}[5m])')
+        'rate(binding_sync_work_duration_seconds_count{result="success"}[1m])')
     
     # failed rate
     local binding_error_rate=$(query_prometheus \
-        'rate(binding_sync_work_duration_seconds_count{result="error"}[5m])')
-    
-    # successful rate percentage
-    local binding_success_percent=$(query_prometheus \
-        'sum(rate(binding_sync_work_duration_seconds_count{result="success"}[5m])) / sum(rate(binding_sync_work_duration_seconds_count[5m])) * 100')
+        'rate(binding_sync_work_duration_seconds_count{result="error"}[1m])')
     
     # successful total count
     local binding_success_total=$(query_prometheus \
@@ -248,9 +243,6 @@ function collect_binding_sync_metrics() {
                 "rate_per_second": ${binding_error_rate},
                 "total_count": ${binding_error_total}
             }
-        },
-        "summary": {
-            "success_rate_percent": ${binding_success_percent}
         }
     }
 }
@@ -260,27 +252,23 @@ EOF
 function collect_work_sync_metrics() {
     # successful P50 latency
     local work_p50=$(query_prometheus \
-        'histogram_quantile(0.50, rate(work_sync_workload_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.50, rate(work_sync_workload_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P90 latency
     local work_p90=$(query_prometheus \
-        'histogram_quantile(0.90, rate(work_sync_workload_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.90, rate(work_sync_workload_duration_seconds_bucket{result="success"}[1m]))')
     
     # successful P99 latency
     local work_p99=$(query_prometheus \
-        'histogram_quantile(0.99, rate(work_sync_workload_duration_seconds_bucket{result="success"}[5m]))')
+        'histogram_quantile(0.99, rate(work_sync_workload_duration_seconds_bucket{result="success"}[1m]))')
 
     # successful rate
     local work_success_rate=$(query_prometheus \
-        'rate(work_sync_workload_duration_seconds_count{result="success"}[5m])')
+        'rate(work_sync_workload_duration_seconds_count{result="success"}[1m])')
     
     # failed rate
     local work_error_rate=$(query_prometheus \
-        'rate(work_sync_workload_duration_seconds_count{result="error"}[5m])')
-    
-    # successful rate percentage
-    local work_success_percent=$(query_prometheus \
-        'sum(rate(work_sync_workload_duration_seconds_count{result="success"}[5m])) / sum(rate(work_sync_workload_duration_seconds_count[5m])) * 100')
+        'rate(work_sync_workload_duration_seconds_count{result="error"}[1m])')
     
     local work_success_total=$(query_prometheus \
         'sum(work_sync_workload_duration_seconds_count{result="success"})')
@@ -307,9 +295,6 @@ function collect_work_sync_metrics() {
                 "rate_per_second": ${work_error_rate},
                 "total_count": ${work_error_total}
             }
-        },
-        "summary": {
-            "success_rate_percent": ${work_success_percent}
         }
     }
 }
@@ -319,19 +304,19 @@ EOF
 function collect_cluster_sync_metrics() {
     # P50 latency
     local cluster_p50=$(query_prometheus \
-        'histogram_quantile(0.50, sum(rate(cluster_sync_status_duration_seconds_bucket[5m])) by (le))')
+        'histogram_quantile(0.50, sum(rate(cluster_sync_status_duration_seconds_bucket[1m])) by (le))')
     
     # P90 latency
     local cluster_p90=$(query_prometheus \
-        'histogram_quantile(0.90, sum(rate(cluster_sync_status_duration_seconds_bucket[5m])) by (le))')
+        'histogram_quantile(0.90, sum(rate(cluster_sync_status_duration_seconds_bucket[1m])) by (le))')
     
     # P99 latency
     local cluster_p99=$(query_prometheus \
-        'histogram_quantile(0.99, sum(rate(cluster_sync_status_duration_seconds_bucket[5m])) by (le))')
+        'histogram_quantile(0.99, sum(rate(cluster_sync_status_duration_seconds_bucket[1m])) by (le))')
 
     # sync rate
     local cluster_rate=$(query_prometheus \
-        'sum(rate(cluster_sync_status_duration_seconds_count[5m]))')
+        'sum(rate(cluster_sync_status_duration_seconds_count[1m]))')
     
     # total sync count
     local cluster_total=$(query_prometheus \
@@ -359,19 +344,19 @@ function collect_single_controller_metrics() {
     
     # Reconciliation P50 latency
     local runtime_p50=$(query_prometheus \
-        "histogram_quantile(0.50, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.50, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[1m])) by (le))")
     
     # Reconciliation P90 latency
     local runtime_p90=$(query_prometheus \
-        "histogram_quantile(0.90, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.90, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[1m])) by (le))")
     
     # Reconciliation P99 latency
     local runtime_p99=$(query_prometheus \
-        "histogram_quantile(0.99, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.99, sum(rate(controller_runtime_reconcile_time_seconds_bucket{controller=\"${controller_name}\"}[1m])) by (le))")
 
     # Reconciliation total rate
     local reconcile_rate=$(query_prometheus \
-        "sum(rate(controller_runtime_reconcile_total{controller=\"${controller_name}\"}[5m]))")
+        "sum(rate(controller_runtime_reconcile_total{controller=\"${controller_name}\"}[1m]))")
     
     # Reconciliation total count
     local reconcile_total=$(query_prometheus \
@@ -380,10 +365,6 @@ function collect_single_controller_metrics() {
     # failed total count
     local error_total=$(query_prometheus \
         "sum(controller_runtime_reconcile_errors_total{controller=\"${controller_name}\"})")
-    
-    # successful rate percentage
-    local success_percent=$(query_prometheus \
-        "(1 - sum(rate(controller_runtime_reconcile_errors_total{controller=\"${controller_name}\"}[5m])) / sum(rate(controller_runtime_reconcile_total{controller=\"${controller_name}\"}[5m]))) * 100")
     
     cat <<EOF
     "${controller_name}": {
@@ -397,9 +378,6 @@ function collect_single_controller_metrics() {
                 "total_rate_per_second": ${reconcile_rate},
                 "total_count": ${reconcile_total},
                 "error_count": ${error_total}
-            },
-            "reliability": {
-                "success_rate_percent": ${success_percent}
             }
         }
     }
@@ -434,92 +412,32 @@ EOF
 EOF
 }
 
-function collect_single_schedule_step_metrics() {
-    local step_name="$1"
-
-    # scheduling step latency P50
-    local step_p50=$(query_prometheus \
-        "histogram_quantile(0.50, sum(rate(karmada_scheduler_scheduling_algorithm_duration_seconds_bucket{schedule_step=\"${step_name}\"}[5m])) by (le))")
-
-    # scheduling step latency P90
-    local step_p90=$(query_prometheus \
-        "histogram_quantile(0.90, sum(rate(karmada_scheduler_scheduling_algorithm_duration_seconds_bucket{schedule_step=\"${step_name}\"}[5m])) by (le))")
-
-    # scheduling step latency P99
-    local step_p99=$(query_prometheus \
-        "histogram_quantile(0.99, sum(rate(karmada_scheduler_scheduling_algorithm_duration_seconds_bucket{schedule_step=\"${step_name}\"}[5m])) by (le))")
-
-    cat <<EOF
-    "${step_name}": {
-        "latency": {
-            "p50_seconds": ${step_p50},
-            "p90_seconds": ${step_p90},
-            "p99_seconds": ${step_p99}
-        }
-    }
-EOF
-}
-
-function collect_scheduling_algorithm_metrics() {
-    collect_grouped_metrics "karmada_scheduler_scheduling_algorithm_duration_seconds_count" "schedule_step" "collect_single_schedule_step_metrics"
-}
-
-function collect_single_extension_point_metrics() {
-    local extension_point="$1"
-
-    # extension point latency P50
-    local ext_p50=$(query_prometheus \
-        "histogram_quantile(0.50, sum(rate(karmada_scheduler_framework_extension_point_duration_seconds_bucket{extension_point=\"${extension_point}\"}[5m])) by (le))")
-
-    # extension point latency P90
-    local ext_p90=$(query_prometheus \
-        "histogram_quantile(0.90, sum(rate(karmada_scheduler_framework_extension_point_duration_seconds_bucket{extension_point=\"${extension_point}\"}[5m])) by (le))")
-
-    # extension point latency P99
-    local ext_p99=$(query_prometheus \
-        "histogram_quantile(0.99, sum(rate(karmada_scheduler_framework_extension_point_duration_seconds_bucket{extension_point=\"${extension_point}\"}[5m])) by (le))")
-
-    cat <<EOF
-    "${extension_point}": {
-        "latency": {
-            "p50_seconds": ${ext_p50},
-            "p90_seconds": ${ext_p90},
-            "p99_seconds": ${ext_p99}
-        }
-    }
-EOF
-}
-
-function collect_framework_extension_metrics() {
-    collect_grouped_metrics "karmada_scheduler_framework_extension_point_duration_seconds_count" "extension_point" "collect_single_extension_point_metrics"
-}
-
 function collect_scheduler_metrics() {
     # successful scheduling (result="scheduled", aggregate all schedule_type)
     local e2e_scheduled_p50=$(query_prometheus \
-        'histogram_quantile(0.50, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[5m])) by (le))')
+        'histogram_quantile(0.50, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[1m])) by (le))')
     local e2e_scheduled_p90=$(query_prometheus \
-        'histogram_quantile(0.90, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[5m])) by (le))')
+        'histogram_quantile(0.90, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[1m])) by (le))')
     local e2e_scheduled_p99=$(query_prometheus \
-        'histogram_quantile(0.99, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[5m])) by (le))')
+        'histogram_quantile(0.99, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="scheduled"}[1m])) by (le))')
 
     # scheduling failed (result="error", aggregate all schedule_type)
     local e2e_error_p50=$(query_prometheus \
-        'histogram_quantile(0.50, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[5m])) by (le))')
+        'histogram_quantile(0.50, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[1m])) by (le))')
     local e2e_error_p90=$(query_prometheus \
-        'histogram_quantile(0.90, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[5m])) by (le))')
+        'histogram_quantile(0.90, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[1m])) by (le))')
     local e2e_error_p99=$(query_prometheus \
-        'histogram_quantile(0.99, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[5m])) by (le))')
+        'histogram_quantile(0.99, sum(rate(karmada_scheduler_e2e_scheduling_duration_seconds_bucket{result="error"}[1m])) by (le))')
 
     # queue incoming binding rate
     local queue_rate=$(query_prometheus \
-        'sum(rate(karmada_scheduler_queue_incoming_bindings_total[5m]))')
+        'sum(rate(karmada_scheduler_queue_incoming_bindings_total[1m]))')
     local queue_total=$(query_prometheus \
         'sum(karmada_scheduler_queue_incoming_bindings_total)')
 
     # scheduling attempt rate
     local attempts_rate=$(query_prometheus \
-        'sum(rate(karmada_scheduler_schedule_attempts_total[5m]))')
+        'sum(rate(karmada_scheduler_schedule_attempts_total[1m]))')
     local attempts_total=$(query_prometheus \
         'sum(karmada_scheduler_schedule_attempts_total)')
 
@@ -564,39 +482,39 @@ function collect_single_workqueue_metrics() {
     
     # queue latency P50 (the time the project waits in the queue)
     local queue_p50=$(query_prometheus \
-        "histogram_quantile(0.50, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.50, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
     
     # queue latency P90
     local queue_p90=$(query_prometheus \
-        "histogram_quantile(0.90, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.90, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
     
     # queue latency P99
     local queue_p99=$(query_prometheus \
-        "histogram_quantile(0.99, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.99, sum(rate(workqueue_queue_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
 
     # processing latency P50 (the time to process a single project)
     local work_p50=$(query_prometheus \
-        "histogram_quantile(0.50, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.50, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
     
     # processing latency P90
     local work_p90=$(query_prometheus \
-        "histogram_quantile(0.90, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.90, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
     
     # processing latency P99
     local work_p99=$(query_prometheus \
-        "histogram_quantile(0.99, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[5m])) by (le))")
+        "histogram_quantile(0.99, sum(rate(workqueue_work_duration_seconds_bucket{name=\"${queue_name}\"}[1m])) by (le))")
 
     # maximum queue depth (last 5 minutes)
     local depth_max=$(query_prometheus \
-        "max_over_time(workqueue_depth{name=\"${queue_name}\"}[5m])")
+        "max_over_time(workqueue_depth{name=\"${queue_name}\"}[1m])")
     
     # average queue depth (last 5 minutes)
     local depth_avg=$(query_prometheus \
-        "avg_over_time(workqueue_depth{name=\"${queue_name}\"}[5m])")
+        "avg_over_time(workqueue_depth{name=\"${queue_name}\"}[1m])")
     
     # add rate (throughput)
     local adds_rate=$(query_prometheus \
-        "sum(rate(workqueue_adds_total{name=\"${queue_name}\"}[5m]))")
+        "sum(rate(workqueue_adds_total{name=\"${queue_name}\"}[1m]))")
     
     # total add count
     local adds_total=$(query_prometheus \
@@ -668,7 +586,7 @@ function collect_single_rest_client_metrics() {
     
     # total request rate (all status codes)
     local total_rate=$(query_prometheus \
-        "sum(rate(rest_client_requests_total{host=\"${host_name}\"}[5m]))")
+        "sum(rate(rest_client_requests_total{host=\"${host_name}\"}[1m]))")
     
     # total request count
     local total_count=$(query_prometheus \
@@ -676,11 +594,11 @@ function collect_single_rest_client_metrics() {
     
     # 2xx request rate (success)
     local rate_2xx=$(query_prometheus \
-        "sum(rate(rest_client_requests_total{host=\"${host_name}\", code=~\"2..\"}[5m]))")
+        "sum(rate(rest_client_requests_total{host=\"${host_name}\", code=~\"2..\"}[1m]))")
     
     # 4xx request rate (client error)
     local rate_4xx=$(query_prometheus \
-        "sum(rate(rest_client_requests_total{host=\"${host_name}\", code=~\"4..\"}[5m]))")
+        "sum(rate(rest_client_requests_total{host=\"${host_name}\", code=~\"4..\"}[1m]))")
     
     # 2xx total request count
     local count_2xx=$(query_prometheus \
@@ -690,130 +608,122 @@ function collect_single_rest_client_metrics() {
     local count_4xx=$(query_prometheus \
         "sum(rest_client_requests_total{host=\"${host_name}\", code=~\"4..\"})")
     
-    # successful rate percentage (2xx)
-    local success_rate_percent=$(query_prometheus \
-        "sum(rate(rest_client_requests_total{host=\"${host_name}\", code=~\"2..\"}[5m])) / sum(rate(rest_client_requests_total{host=\"${host_name}\"}[5m])) * 100")
-    
     cat <<EOF
     "${host_name}": {
         "total": {
             "rate_per_second": ${total_rate},
             "count": ${total_count}
         },
-        "by_status": {
-            "2xx": {
-                "rate_per_second": ${rate_2xx},
-                "count": ${count_2xx}
-            },
-            "4xx": {
-                "rate_per_second": ${rate_4xx},
-                "count": ${count_4xx}
-            }
+        "2xx": {
+            "rate_per_second": ${rate_2xx},
+            "count": ${count_2xx}
         },
-        "reliability": {
-            "success_rate_percent": ${success_rate_percent}
+        "4xx": {
+            "rate_per_second": ${rate_4xx},
+            "count": ${count_4xx}
+        }
+    }
+EOF
+}
+
+function collect_rest_client_metrics_by_pattern() {
+    local key_name="$1"
+    local pattern="$2"
+
+    # total request rate (all status codes)
+    local total_rate=$(query_prometheus \
+        "sum(rate(rest_client_requests_total{host=~\"${pattern}\"}[1m]))")
+
+    # total request count
+    local total_count=$(query_prometheus \
+        "sum(rest_client_requests_total{host=~\"${pattern}\"})")
+
+    # 2xx request rate (success)
+    local rate_2xx=$(query_prometheus \
+        "sum(rate(rest_client_requests_total{host=~\"${pattern}\", code=~\"2..\"}[1m]))")
+
+    # 4xx request rate (client error)
+    local rate_4xx=$(query_prometheus \
+        "sum(rate(rest_client_requests_total{host=~\"${pattern}\", code=~\"4..\"}[1m]))")
+
+    # 2xx total request count
+    local count_2xx=$(query_prometheus \
+        "sum(rest_client_requests_total{host=~\"${pattern}\", code=~\"2..\"})")
+
+    # 4xx total request count
+    local count_4xx=$(query_prometheus \
+        "sum(rest_client_requests_total{host=~\"${pattern}\", code=~\"4..\"})")
+
+    cat <<EOF
+    "${key_name}": {
+        "total": {
+            "rate_per_second": ${total_rate},
+            "count": ${total_count}
+        },
+        "2xx": {
+            "rate_per_second": ${rate_2xx},
+            "count": ${count_2xx}
+        },
+        "4xx": {
+            "rate_per_second": ${rate_4xx},
+            "count": ${count_4xx}
         }
     }
 EOF
 }
 
 function collect_rest_client_metrics() {
-    local result=$(collect_grouped_metrics "rest_client_requests_total" "host" "collect_single_rest_client_metrics")
+    local ipv4_port_pattern="[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+:[0-9]+"
+    local ipv6_pattern="\[.*\]"
+
+    # 1. Get individual metrics (excluding member clusters and ipv6)
+    local exclude="${ipv4_port_pattern}|${ipv6_pattern}"
+    local individual_json=$(collect_grouped_metrics "rest_client_requests_total" "host" "collect_single_rest_client_metrics" "${exclude}")
+
+    # 2. Get aggregated metrics for member clusters
+    local aggregated_json=$(collect_rest_client_metrics_by_pattern "member_clusters_aggregated" "${ipv4_port_pattern}")
+
+    # Wrap aggregated_json in {} to make it a valid object for jq
+    local aggregated_obj="{ ${aggregated_json} }"
+
+    # 3. Merge JSONs
+    local merged_json=$(echo "${individual_json} ${aggregated_obj}" | jq -s '.[0] + .[1]')
+
     cat <<EOF
 {
-    "rest_client": ${result}
+    "rest_client": ${merged_json}
 }
 EOF
 }
 
-function collect_component_resources_by_pod() {
+function collect_single_component_resources() {
     local component_name="$1"
     local namespace="${2:-karmada-system}"
     local container_name="${3:-$component_name}"
 
-    # get all pod names of the component at END_TIME
-    local pods=$(curl -s -G "${PROMETHEUS_ENDPOINT}/api/v1/query" \
-        --data-urlencode "query=container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=~\"${component_name}-.+\", container=\"${container_name}\"}" \
-        --data-urlencode "time=${END_TIME}" 2>/dev/null | \
-        jq -r '.data.result[].metric.pod' 2>/dev/null | sort -u)
-
-    if [ -z "${pods}" ]; then
-        echo "⚠️  Warning: No Pod found for ${component_name}" >&2
-        cat <<EOF
-EOF
-        return
-    fi
-
-    # collect metrics for each Pod
-    local pod_metrics=""
-    local first=true
-    for pod in ${pods}; do
-        if [ "${first}" = true ]; then
-            first=false
-        else
-            pod_metrics+=","
-        fi
-
-        # CPU usage (cores/second) - single Pod
-        local cpu_rate=$(query_prometheus \
-            "rate(container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=\"${pod}\", container=\"${container_name}\"}[5m])")
-
-        # memory working set usage (bytes) - single Pod
-        local memory_bytes=$(query_prometheus \
-            "container_memory_working_set_bytes{namespace=\"${namespace}\", pod=\"${pod}\", container=\"${container_name}\"}")
-
-        pod_metrics+=$(cat <<EOF
-        "${pod}": {
-            "cpu": {
-                "usage_cores_per_second": ${cpu_rate}
-            },
-            "memory": {
-                "working_set_bytes": ${memory_bytes}
-            }
-        }
-EOF
-        )
-    done
-
-    cat <<EOF
-{
-        ${pod_metrics}
-}
-EOF
-}
-
-function collect_single_pod_resources() {
-    local pod_name="$1"
-    local namespace="${2:-karmada-system}"
-    local container_name="${3:-$pod_name}"
-
     # CPU usage (cores/second)
     local cpu_rate=$(query_prometheus \
-        "rate(container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=\"${pod_name}\", container=\"${container_name}\"}[5m])")
+        "sum(rate(container_cpu_usage_seconds_total{namespace=\"${namespace}\", pod=~\"${component_name}-.+\", container=\"${container_name}\"}[1m]))")
 
     # memory working set usage (bytes)
     local memory_bytes=$(query_prometheus \
-        "container_memory_working_set_bytes{namespace=\"${namespace}\", pod=\"${pod_name}\", container=\"${container_name}\"}")
+        "sum(container_memory_working_set_bytes{namespace=\"${namespace}\", pod=~\"${component_name}-.+\", container=\"${container_name}\"})")
 
     cat <<EOF
 {
-    "${pod_name}": {
-        "cpu": {
-            "usage_cores_per_second": ${cpu_rate}
-        },
-        "memory": {
-            "working_set_bytes": ${memory_bytes}
-        }
+    "cpu": {
+        "usage_cores_per_second": ${cpu_rate}
+    },
+    "memory": {
+        "working_set_bytes": ${memory_bytes}
     }
 }
 EOF
 }
 
 function collect_component_metrics() {
-    # etcd with fixed pod name
-    local etcd_metrics=$(collect_single_pod_resources "etcd-0" "karmada-system" "etcd")
-
-    local apiserver_metrics=$(collect_component_resources_by_pod "karmada-apiserver" "karmada-system" "karmada-apiserver")
+    local etcd_metrics=$(collect_single_component_resources "etcd" "karmada-system" "etcd")
+    local apiserver_metrics=$(collect_single_component_resources "karmada-apiserver" "karmada-system" "karmada-apiserver")
 
     cat <<EOF
 {
