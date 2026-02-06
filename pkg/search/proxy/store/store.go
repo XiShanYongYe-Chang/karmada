@@ -58,6 +58,12 @@ func newStore(gvr schema.GroupVersionResource, multiNS *MultiNamespace, newClien
 	}
 }
 
+// IsWatchListSemanticsUnSupported informs the store doesn't support WatchList semantics.
+// Returning true signals that WatchList can NOT be used.
+func (s *store) IsWatchListSemanticsUnSupported() bool {
+	return true
+}
+
 // Versioner implements storage.Interface.
 func (s *store) Versioner() storage.Versioner {
 	return s.versioner
