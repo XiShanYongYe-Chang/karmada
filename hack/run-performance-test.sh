@@ -102,3 +102,5 @@ export STEP=${STEP:-15s}
 "${REPO_ROOT}"/hack/performance-env/collect-metrics.sh
 
 echo "✅ performance test is completed"
+
+echo "end"
