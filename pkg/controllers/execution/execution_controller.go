@@ -383,6 +383,10 @@ func (c *Controller) setStatusCondition(ctx context.Context, work *workv1alpha1.
 		_, err = helper.UpdateStatus(ctx, c.Client, work, func() error {
 			meta.SetStatusCondition(&work.Status.Conditions, statusCondition)
 			return nil
+		}, func(base client.Object) {
+			// Force update conditions by clearing them in the base object
+			baseWork := base.(*workv1alpha1.Work)
+			baseWork.Status.Conditions = nil
 		})
 		return err
 	})

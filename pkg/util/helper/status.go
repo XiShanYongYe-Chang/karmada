@@ -25,6 +25,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
+// UpdateStatusOption defines the function to modify the base object for patch generation.
+type UpdateStatusOption func(base client.Object)
+
 // UpdateStatus updates the given object's status in the Kubernetes
 // cluster. The object's desired state must be reconciled with the existing
 // state inside the passed in callback MutateFn.
@@ -36,22 +39,41 @@ import (
 // Note: changes to any sub-resource other than status will be ignored.
 // Changes to the status sub-resource will only be applied if the object
 // already exist.
-func UpdateStatus(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn) (controllerutil.OperationResult, error) {
+func UpdateStatus(ctx context.Context, c client.Client, obj client.Object, f controllerutil.MutateFn, opts ...UpdateStatusOption) (controllerutil.OperationResult, error) {
 	key := client.ObjectKeyFromObject(obj)
 	if err := c.Get(ctx, key, obj); err != nil {
 		return controllerutil.OperationResultNone, err
 	}
 
-	existing := obj.DeepCopyObject()
+	// Create a copy of the object from cache to be used as base for patch generation.
+	// We use Patch to update status to avoid the conflict error.
+	base := obj.DeepCopyObject().(client.Object)
+
 	if err := mutate(f, key, obj); err != nil {
 		return controllerutil.OperationResultNone, err
 	}
 
-	if equality.Semantic.DeepEqual(existing, obj) {
+	// Apply options to modify the base object.
+	// This is useful when we want to force update some fields even if they are not changed in the cache.
+	// For example, if we want to force update the conditions, we can set the conditions in the base object to nil/empty.
+	for _, opt := range opts {
+		opt(base)
+	}
+
+	patchObj := obj.DeepCopyObject().(client.Object)
+	// Set the resource version to empty to ensure the patch is applied blindly.
+	// This prevents the request from failing due to a conflict error (409 Conflict)
+	// when the client's cache is stale (i.e., the resource version in the cache
+	// does not match the one in the API server).
+	patchObj.SetResourceVersion("")
+
+	if equality.Semantic.DeepEqual(base, patchObj) {
 		return controllerutil.OperationResultNone, nil
 	}
 
-	if err := c.Status().Update(ctx, obj); err != nil {
+	patch := client.MergeFrom(base)
+
+	if err := c.Status().Patch(ctx, patchObj, patch); err != nil {
 		return controllerutil.OperationResultNone, err
 	}
 	return controllerutil.OperationResultUpdatedStatusOnly, nil
