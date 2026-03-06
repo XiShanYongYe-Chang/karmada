@@ -38,8 +38,8 @@ function check_clusters_ready() {
   echo "Waiting for kubeconfig file ${kubeconfig_path} and clusters ${context_name} to be ready..."
   util::wait_for_condition 'running' "docker inspect --format='{{.State.Status}}' ${context_name}-control-plane &> /dev/null" 300
 
-  # delete the redundant context
-  kubectl config delete-context kind-kwok-foo-${i}
+  # delete the redundant context if it exists
+  kubectl config delete-context "kind-${context_name}" >/dev/null 2>&1 || true
 
   local os_name
   os_name=$(go env GOOS)
@@ -68,7 +68,7 @@ function check_clusters_ready() {
 export KUBECONFIG=${MEMBER_CLUSTER_KUBECONFIG}
 
 for i in $(seq 1 "${CLUSTER_COUNT}"); do 
-  kwokctl delete cluster --name=foo-${i}
+  kwokctl delete cluster --name=foo-${i} || true
   kwokctl create cluster --name=foo-${i} --runtime=kind --kind-node-image=${CLUSTER_VERSION}
 
   check_clusters_ready "${KUBECONFIG}" "kwok-foo-${i}"

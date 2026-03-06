@@ -17,13 +17,9 @@ import argparse
 import json
 import sys
 import os
-import math
-from datetime import datetime
 
 try:
     import matplotlib.pyplot as plt
-    import matplotlib.dates as mdates
-    from matplotlib.backends.backend_pdf import PdfPages
 except ImportError:
     print("Error: matplotlib is not installed. Please install it using 'pip install matplotlib'")
     sys.exit(1)

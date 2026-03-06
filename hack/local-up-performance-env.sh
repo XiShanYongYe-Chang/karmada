@@ -78,7 +78,23 @@ function deploy_prometheus() {
     kubectl --context="${HOST_CLUSTER_NAME}" apply -f "${REPO_ROOT}/hack/performance-env/prometheus/rbac.yaml"
     kubectl --context="${KARMADA_APISERVER_CLUSTER_NAME}" apply -f "${REPO_ROOT}/hack/performance-env/prometheus/rbac.yaml"
     
-    KARMADA_TOKEN=$(kubectl --context="${KARMADA_APISERVER_CLUSTER_NAME}" get secret prometheus -o=jsonpath={.data.token} -n monitor | base64 -d)
+    # Wait for prometheus service account token secret to be populated in the Karmada apiserver cluster
+    local max_retries=30
+    local retry_interval=2
+    local karmada_token_base64=""
+    for ((i=1; i<=max_retries; i++)); do
+        karmada_token_base64=$(kubectl --context="${KARMADA_APISERVER_CLUSTER_NAME}" get secret prometheus -n monitor -o jsonpath='{.data.token}' 2>/dev/null || true)
+        if [[ -n "${karmada_token_base64}" ]]; then
+            break
+        fi
+        echo "Waiting for prometheus service account token to be populated in ${KARMADA_APISERVER_CLUSTER_NAME} cluster (${i}/${max_retries})..."
+        sleep "${retry_interval}"
+    done
+    if [[ -z "${karmada_token_base64}" ]]; then
+        echo "Failed to retrieve prometheus service account token from ${KARMADA_APISERVER_CLUSTER_NAME} cluster after $((max_retries * retry_interval)) seconds."
+        return 1
+    fi
+    KARMADA_TOKEN=$(echo -n "${karmada_token_base64}" | base64 -d)
     
     # Create secret with token in host cluster
     kubectl --context="${HOST_CLUSTER_NAME}" create secret generic karmada-token --from-literal=token="${KARMADA_TOKEN}" -n monitor --dry-run=client -o yaml | kubectl --context="${HOST_CLUSTER_NAME}" apply -f -

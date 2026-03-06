@@ -62,7 +62,6 @@ jobs:
 
       - name: setup performance test environment
         run: |
-          export CLUSTER_VERSION=kindest/node:v1.34.0
           hack/local-up-performance-env.sh
           
       - name: run performance test
@@ -132,7 +131,6 @@ jobs:
 
       - name: setup performance test environment
         run: |
-          export CLUSTER_VERSION=kindest/node:v1.34.0
           hack/local-up-performance-env.sh
           
       - name: run performance test

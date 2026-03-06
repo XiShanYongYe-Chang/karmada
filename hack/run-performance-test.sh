@@ -35,8 +35,8 @@ mkdir -p "${OUTPUT_DIR}"
 function run_performance_test() {
     echo "start to run ClusterLoader2 performance test"
     
-    rm -rf perf-tests
-    git clone https://github.com/kubernetes/perf-tests.git
+    rm -rf "${REPO_ROOT}/perf-tests"
+    git clone https://github.com/kubernetes/perf-tests.git "${REPO_ROOT}/perf-tests"
 
     cp "${REPO_ROOT}/hack/performance-env/clusterloader2/config.yaml" "${REPO_ROOT}/perf-tests/clusterloader2/config.yaml"
     cp "${REPO_ROOT}/hack/performance-env/clusterloader2/deployment.yaml" "${REPO_ROOT}/perf-tests/clusterloader2/deployment.yaml"
@@ -45,8 +45,8 @@ function run_performance_test() {
 
     cd "${REPO_ROOT}/perf-tests/clusterloader2"
     go run cmd/clusterloader.go --testconfig=config.yaml --provider=local --kubeconfig=$MAIN_KUBECONFIG --k8s-clients-number=1 --skip-cluster-verification=true --enable-exec-service=false
-    cd ../..
-    rm -rf perf-tests
+    cd "${REPO_ROOT}"
+    rm -rf "${REPO_ROOT}/perf-tests"
 }
 
 function start_prometheus_forward() {
@@ -56,7 +56,7 @@ function start_prometheus_forward() {
     if pgrep -f "port-forward.*prometheus" > /dev/null; then
         echo "Prometheus port forwarding is already running"
     else
-        kubectl --context="${HOST_CLUSTER_NAME}" port-forward -n monitor svc/prometheus --address 0.0.0.0 ${PROMETHEUS_PORT}:9090 > /dev/null 2>&1 &
+        kubectl --context="${HOST_CLUSTER_NAME}" port-forward -n monitor svc/prometheus --address 127.0.0.1 ${PROMETHEUS_PORT}:9090 > /dev/null 2>&1 &
         local forward_pid=$!
         echo ${forward_pid} > "${OUTPUT_DIR}/prometheus-forward-${PROMETHEUS_PORT}.pid"
         sleep 5
@@ -83,8 +83,6 @@ function cleanup() {
         fi
         rm "${OUTPUT_DIR}/prometheus-forward-${PROMETHEUS_PORT}.pid"
     fi
-
-    rm -rf "${OUTPUT_DIR}"
 }
 
 export KUBECONFIG=${MAIN_KUBECONFIG}
