@@ -43,6 +43,8 @@ if [[ -n ${CHINA_MAINLAND:-} ]]; then
   util::set_mirror_registry_for_china_mainland ${REPO_ROOT}
 fi
 
+# tmp test
+
 # make sure go exists and the go version is a viable version.
 util::cmd_must_exist "go"
 util::verify_go_version
