@@ -22,7 +22,7 @@ set -o pipefail
 # component images built from the latest code.
 # Note: This script works for both Linux and MacOS.
 
-REPO_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "${REPO_ROOT}"/hack/util.sh
 
 # variable define

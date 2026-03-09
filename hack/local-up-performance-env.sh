@@ -50,6 +50,60 @@ export KARMADA_APISERVER_CLUSTER_NAME=${KARMADA_APISERVER_CLUSTER_NAME:-"karmada
 export MEMBER_CLUSTER_KUBECONFIG=${MEMBER_CLUSTER_KUBECONFIG:-"${KUBECONFIG_PATH}/members.config"}
 export HOST_IPADDRESS=${1:-}
 
+# step0. install dependencies
+function install_dependencies() {
+    echo "Installing performance test dependencies..."
+
+    # Install kwokctl
+    echo "Installing kwokctl..."
+    local kwokctl_version="v0.7.0"
+    local kwokctl_path="/usr/local/bin/kwokctl"
+
+    if command -v kwokctl &> /dev/null; then
+        echo "✅ kwokctl is already installed"
+    else
+        local os_type
+        os_type=$(uname -s | tr '[:upper:]' '[:lower:]')
+        local arch
+        arch=$(uname -m)
+        case "$arch" in
+            x86_64) arch="amd64" ;;
+            aarch64) arch="arm64" ;;
+        esac
+
+        local kwokctl_url="https://github.com/kubernetes-sigs/kwok/releases/download/${kwokctl_version}/kwokctl-${os_type}-${arch}"
+        local tmp_kwokctl="/tmp/kwokctl-${kwokctl_version}"
+
+        wget -q "${kwokctl_url}" -O "${tmp_kwokctl}" || {
+            echo "❌ Failed to download kwokctl from ${kwokctl_url}"
+            return 1
+        }
+        chmod +x "${tmp_kwokctl}"
+        sudo mv "${tmp_kwokctl}" "${kwokctl_path}" || {
+            echo "❌ Failed to move kwokctl to ${kwokctl_path}"
+            return 1
+        }
+        echo "✅ kwokctl installed successfully at ${kwokctl_path}"
+    fi
+
+    # Install system dependencies
+    echo "Installing system dependencies (jq, bc)..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update
+        sudo apt-get install -y jq bc
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y jq bc
+    elif command -v brew &> /dev/null; then
+        brew install jq bc
+    else
+        echo "❌ Unable to find a supported package manager (apt-get, yum, or brew)"
+        return 1
+    fi
+    echo "✅ System dependencies installed successfully"
+}
+
+install_dependencies
+
 # step1. set up a base development environment
 "${REPO_ROOT}"/hack/performance-env/setup-control-plane.sh
 export KUBECONFIG="${MAIN_KUBECONFIG}"

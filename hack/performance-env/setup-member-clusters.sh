@@ -20,7 +20,7 @@ set -o pipefail
 # This script sets up member clusters for Karmada.
 # It creates multiple Kind clusters with kwokctl.
 
-REPO_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "${REPO_ROOT}"/hack/util.sh
 
 export KUBECONFIG_PATH=${KUBECONFIG_PATH:-"${HOME}/.kube"}
