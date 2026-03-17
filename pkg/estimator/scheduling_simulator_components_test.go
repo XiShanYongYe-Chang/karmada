@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/karmada-io/karmada/pkg/estimator/pb"
+	nodeutil "github.com/karmada-io/karmada/pkg/estimator/server/nodes"
 	"github.com/karmada-io/karmada/pkg/util"
 	schedulerframework "github.com/karmada-io/karmada/pkg/util/lifted/scheduler/framework"
 )
@@ -144,9 +145,15 @@ func TestMatchNode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := matchNode(tt.replicaRequirements.NodeClaim, tt.node)
+			affinity := nodeutil.GetRequiredNodeAffinity(tt.replicaRequirements)
+			var tolerations []corev1.Toleration
+			if tt.replicaRequirements.NodeClaim != nil {
+				tolerations = tt.replicaRequirements.NodeClaim.Tolerations
+			}
+
+			result := MatchNode(tt.node, affinity, tolerations)
 			if result != tt.expected {
-				t.Errorf("matchNode() = %v, expected %v", result, tt.expected)
+				t.Errorf("MatchNode() = %v, expected %v", result, tt.expected)
 			}
 		})
 	}

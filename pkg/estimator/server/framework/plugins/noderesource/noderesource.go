@@ -70,8 +70,7 @@ func (pl *nodeResourceEstimator) Name() string {
 // Estimate the replica allowed by the node resources for a given pb.ReplicaRequirements.
 func (pl *nodeResourceEstimator) Estimate(ctx context.Context, snapshot *schedcache.Snapshot, requirements *pb.ReplicaRequirements) (int32, *framework.Result) {
 	if !pl.enabled {
-		klog.V(5).Info("Estimator Plugin", "name", Name, "enabled", pl.enabled)
-		return noNodeConstraint, framework.NewResult(framework.Noopperation, fmt.Sprintf("%s is disabled", pl.Name()))
+		return pl.disabledResult()
 	}
 
 	allNodes, err := snapshot.NodeInfos().List()
@@ -90,7 +89,7 @@ func (pl *nodeResourceEstimator) Estimate(ctx context.Context, snapshot *schedca
 	var res int32
 	processNode := func(i int) {
 		node := allNodes[i]
-		if !nodeutil.IsNodeAffinityMatched(node.Node(), affinity) || !nodeutil.IsTolerationMatched(node.Node(), tolerations) {
+		if !estimator.MatchNode(node, affinity, tolerations) {
 			return
 		}
 		maxReplica := pl.nodeMaxAvailableReplica(node, requirements.ResourceRequest)
@@ -102,21 +101,27 @@ func (pl *nodeResourceEstimator) Estimate(ctx context.Context, snapshot *schedca
 }
 
 func (pl *nodeResourceEstimator) nodeMaxAvailableReplica(node *schedulerframework.NodeInfo, rl corev1.ResourceList) int32 {
+	rest := getNodeAvailableResource(node)
+	return int32(rest.MaxDivided(rl)) // #nosec G115: integer overflow conversion int64 -> int32
+}
+
+// getNodeAvailableResource calculates a node's available resources after deducting requested resources
+// and adjusting the pod-count capacity, which isn't included in node.Requested.
+func getNodeAvailableResource(node *schedulerframework.NodeInfo) *util.Resource {
 	rest := node.Allocatable.Clone().SubResource(node.Requested)
 	// The number of pods in a node is a kind of resource in node allocatable resources.
 	// However, total requested resources of all pods on this node, i.e. `node.Requested`,
 	// do not contain pod resources. So after subtraction, we should cope with allowed pod
 	// number manually which is the upper bound of this node available replicas.
 	rest.AllowedPodNumber = util.MaxInt64(rest.AllowedPodNumber-int64(len(node.Pods)), 0)
-	return int32(rest.MaxDivided(rl)) // #nosec G115: integer overflow conversion int64 -> int32
+	return rest
 }
 
 // EstimateComponents estimates the maximum number of complete component sets that can be scheduled.
 // It returns the number of sets that can fit on the available node resources.
 func (pl *nodeResourceEstimator) EstimateComponents(_ context.Context, snapshot *schedcache.Snapshot, components []pb.Component, _ string) (int32, *framework.Result) {
 	if !pl.enabled {
-		klog.V(5).Info("Estimator Plugin", "name", Name, "enabled", pl.enabled)
-		return noNodeConstraint, framework.NewResult(framework.Noopperation, fmt.Sprintf("%s is disabled", pl.Name()))
+		return pl.disabledResult()
 	}
 
 	if len(components) == 0 {
@@ -136,6 +141,11 @@ func (pl *nodeResourceEstimator) EstimateComponents(_ context.Context, snapshot 
 	return sets, framework.NewResult(framework.Success)
 }
 
+func (pl *nodeResourceEstimator) disabledResult() (int32, *framework.Result) {
+	klog.V(5).Info("Estimator Plugin", "name", Name, "enabled", pl.enabled)
+	return noNodeConstraint, framework.NewResult(framework.Noopperation, fmt.Sprintf("%s is disabled", pl.Name()))
+}
+
 // getNodesAvailableResources retrieves and prepares the list of node information from the snapshot.
 // It clones each node's info and adjusts the allocatable resources by subtracting the requested resources.
 // So that the returned node infos reflect the actual available resources for scheduling.
@@ -148,8 +158,7 @@ func getNodesAvailableResources(snapshot *schedcache.Snapshot) ([]*schedulerfram
 	rest := make([]*schedulerframework.NodeInfo, 0, len(allNodes))
 	for _, node := range allNodes {
 		n := node.Clone()
-		n.Allocatable.SubResource(n.Requested)
-		n.Allocatable.AllowedPodNumber = util.MaxInt64(n.Allocatable.AllowedPodNumber-int64(len(node.Pods)), 0)
+		n.Allocatable = getNodeAvailableResource(node)
 		rest = append(rest, n)
 	}
 
